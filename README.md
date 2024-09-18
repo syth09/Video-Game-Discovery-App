@@ -7,7 +7,7 @@
 
 ### Installing Chakra:
 
-- Because we're using Vite so will install the library as guide in the chakra page:https://v2.chakra-ui.com/getting-started/vite-guide
+- Because we're using Vite so we'll install the library as guide in the chakra page:https://v2.chakra-ui.com/getting-started/vite-guide
 
 * 1. Installation: `npm i @chakra-ui/react @emotion/react @emotion/styled framer-motion`
 * 2. Provider Setup:
