@@ -7,25 +7,25 @@
 
 ### Installing Chakra:
 
-- Because we're using Vite so will install the library as guide in the chakra page:https://v2.chakra-ui.com/getting-started/vite-guide
+- Because we're using Vite so we'll install the library as guide in the chakra page:https://v2.chakra-ui.com/getting-started/vite-guide
 
 * 1. Installation: `npm i @chakra-ui/react @emotion/react @emotion/styled framer-motion`
 * 2. Provider Setup:
 
 ```
-import * as React from 'react'
-import { ChakraProvider } from '@chakra-ui/react'
-import * as ReactDOM from 'react-dom/client'
-import App from './App';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { ChakraProvider } from "@chakra-ui/react";
+import App from "./App";
+import "./index.css";
 
-const rootElement = document.getElementById('root')
-ReactDOM.createRoot(rootElement).render(
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <ChakraProvider>
       <App />
     </ChakraProvider>
-  </React.StrictMode>,
-)
+  </React.StrictMode>
+);
 ```
 
 ### Creating a Responsive Layout:
@@ -142,3 +142,40 @@ const NavBar = () => {
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/e94e71b3-9b56-4a7f-9745-99d7f79dd1f2)
+
+### Implementing the Dark Mode:
+
+- Creating dark mode using chakra `Color Mode`.
+- We first and foremost going to create a file inside our `src` folder and named it `theme.ts`. With this file we going to customize the default theme that come with chakra.
+- First, we import a function call `extendTheme` as well as an interface named `ThemeConfig`, then we need to create a configuration object and annotate it with the `ThemeConfig` to access its properties. After that we call the `extendTheme` pass it the `config` object, and then extract it:
+
+```
+import { extendTheme, ThemeConfig } from "@chakra-ui/react";
+
+const config: ThemeConfig = {
+  initialColorMode: "dark"
+};
+
+const theme = extendTheme({ config });
+
+export default theme;
+```
+
+- When finished extracting it, we import it in our `main.tsx` and then pass it onto the `ChakraProvider` and a `ColorModeScript` to set the color as default value when we run our application:
+
+```
+// other imports
+import theme from "./theme";
+import "./index.css";
+
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+  <React.StrictMode>
+    <ChakraProvider theme={theme}>
+      <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+      <App />
+    </ChakraProvider>
+  </React.StrictMode>
+);
+```
+
+![image](https://gist.github.com/user-attachments/assets/5cc5158e-2a54-41c3-921d-2d8fba8fb480)
