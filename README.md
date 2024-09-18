@@ -65,7 +65,7 @@ function App() {
 
 ![image](https://gist.github.com/user-attachments/assets/61c2ee08-3bf8-4ac6-9104-4c930fd10304)
 
-- To make it more user-friendly we would had to hide the `side panel` on mobile devices, so back to our `App` components instead of setting the `templateAreas` to a `String`, we should set it to an object and inside that object we can set various properties like: `base`, `sm` (small), `md` (medium), `lg`(large), `xl` (extra large), etc. These are our break points.
+- To make it more user-friendly we would had to hide the `side panel` on mobile devices, so back to our `App` components instead of setting the `templateAreas` to a `String`, we should set it to an object and inside that object we can set various properties like: `base`, `sm` (small), `md` (medium), `lg`(large), `xl` (extra large), etc. These are our break points:
   ![image](https://gist.github.com/user-attachments/assets/409967b8-34a4-42e7-af0c-c92b9fc52cea)
 - Next, within our object we'd needed to define 2 different layouts, one for mobile devices and other for large devices with screen wider than 1024px. Now, after defining the layout we need to make sure the our `side panel` only shown when the layout of the user screen are `lg` or bigger, and with that we going to use the `Show` components and `above` methods from chakra.
 
@@ -98,3 +98,47 @@ function App() {
   ![image](https://gist.github.com/user-attachments/assets/96a00dbd-b846-4439-8aaf-a45732a83a98)
 - Larger devices:
   ![image](https://gist.github.com/user-attachments/assets/5fa00ea9-4a83-44af-900b-040618132e50)
+
+### Building a Navigation Bar:
+
+- Let's start with creating a components folder then we create our `NavBar` components.
+- In our `NavBar` components we want to layout our items horizontally, and to do that we can use the components call `HStack` from our chakra library.
+
+```
+import { HStack } from "@chakra-ui/react";
+
+const NavBar = () => {
+  return (
+    <HStack>
+    </HStack>
+  );
+};
+
+export default NavBar;
+```
+
+- Now to create a place holder for our project icon simply create an `Image` components that come from the library, then we import our logo just liked any other JS module:
+
+```
+import { HStack, Image, Text } from "@chakra-ui/react";
+import logo from "../assets/logo.webp";
+
+const NavBar = () => {
+  return (
+    <HStack>
+      <Image src={logo} boxSize={"60px"} />
+      <Text>NavBar</Text>
+    </HStack>
+  );
+};
+```
+
+- After finished the logo we will head to our `App` components and add it into our `GridItem` and test out the functionality of our components:
+
+```
+<GridItem area="nav" bg="coral">
+  <NavBar />
+</GridItem>
+```
+
+![image](https://gist.github.com/user-attachments/assets/e94e71b3-9b56-4a7f-9745-99d7f79dd1f2)
