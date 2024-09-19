@@ -179,3 +179,60 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/5cc5158e-2a54-41c3-921d-2d8fba8fb480)
+
+### Building a Color Mode Switch:
+
+- Adding a switch sole purpose of toggling the color mode. To work with color mode we have to used a custom hook defined in chakra `useColorMode`.
+- When declaring our `Switch` component give it a `isChecked={colorMode === "dark"}` to see if our theme was assign as dark mode or not, then apply `onChange` to `onChange={toggleColorMode}`. All the functionality has already built for us so nothing much to be done here.
+
+```
+import { HStack, Switch, Text, useColorMode } from "@chakra-ui/react";
+
+const ColorModeSwitch = () => {
+  const { toggleColorMode, colorMode } = useColorMode();
+
+  return (
+    <HStack>
+      <Switch
+        colorScheme="green"
+        isChecked={colorMode === "dark"}
+        onChange={toggleColorMode}
+      />
+      <Text>Dark mode</Text>
+    </HStack>
+  );
+};
+
+export default ColorModeSwitch;
+```
+
+- With this new code snippet implement on our `ColorModeSwitch` component, the only job left for us to do is add this component to our `NavBar`:
+
+```
+import ColorModeSwitch from "./ColorModeSwitch";
+
+const NavBar = () => {
+  return (
+    <HStack>
+      <Image src={logo} boxSize={"60px"} />
+      // switch our the `Text` and import color mode switch button instead.
+      <ColorModeSwitch />
+    </HStack>
+  );
+};
+```
+
+- Dark:
+  ![image](https://gist.github.com/user-attachments/assets/232a667b-032e-4e4a-b003-9c8b31540eb4)
+  -Light:
+  ![image](https://gist.github.com/user-attachments/assets/c2002adc-54d3-4808-8791-0093e6a3ef52)
+- The last thing we want to do to improve the UI is by placing the switch button on the right side of the `NavBar`, and to do that we can simply set our `HStack` content in `NavBar` to have a display of flex and use the element `justify-content: space-between` to even out the display of the `NavBar` (also we need to add some padding to make the text not so close to the edge of the screen):
+
+```
+<HStack justifyContent="space-between" padding="10px">
+  <Image src={logo} boxSize={"60px"} />
+  <ColorModeSwitch />
+</HStack>
+```
+
+![image](https://gist.github.com/user-attachments/assets/47ab717c-5a53-4a88-b3d7-c3579d7e973f)
