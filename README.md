@@ -182,7 +182,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 
 ### Building a Color Mode Switch:
 
-- Adding a switch sole purpose of toggling the color mode. To work with color mode we have to used a custom hook defined in chakra `useColorMode`.
+- Add a switch whose sole purpose is to toggle the colour mode. To work with the colour mode, we must use a custom hook defined in the `useColorMode` chakra.
 - When declaring our `Switch` component give it a `isChecked={colorMode === "dark"}` to see if our theme was assign as dark mode or not, then apply `onChange` to `onChange={toggleColorMode}`. All the functionality has already built for us so nothing much to be done here.
 
 ```
@@ -236,3 +236,115 @@ const NavBar = () => {
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/47ab717c-5a53-4a88-b3d7-c3579d7e973f)
+
+### Fetching the Games:
+
+- Fetch a list of games from rawg api.
+- Then install axios on our project `npm i axios`.
+- Now we've got to create an axios instance with custom configuration and in the configuration we're going to include our object key that we got from rawg.
+- Add a new folder in our `src` folder and name it `services`, create a new files call `api-client.ts`. Then in our new files we import axios then use the syntax `axios.create({})` to create a new instance with a custom configuration. Set the params to an object and in this object we set the key to the value that we get from rawg:
+
+```
+import axios from "axios";
+
+export default axios.create({
+  params: {
+    key: "9eae00bfd5b94fa5859c69d91e6d5e7d"
+  }
+});
+```
+
+- With this configuration, this key will be included in the query string of every HTTP request that we send to our backend, and we should also set the `baseURL` of it to the games api that got provide by rawg's api documentation:
+
+```
+import axios from "axios";
+
+export default axios.create({
+  baseURL: "https://api.rawg.io/api",
+  params: {
+    key: "9eae00bfd5b94fa5859c69d91e6d5e7d"
+  }
+});
+```
+
+- Next we need to create a components that can fetch our games data, inside of our components we create a `useState` variables to store our game object and error messages:
+
+```
+const [games, setGames] = useState([]);
+const [error, setError] = useState("");
+```
+
+- Now we need to use the `useEffect` hook to send a fetch request to the backend.
+
+```
+import { useEffect, useState } from "react";
+import apiClient from "../services/api-client";
+
+// Create a interface to fulfill the shape of the response object with the schema on rawg
+interface Game {
+  id: number;
+  name: string;
+}
+
+interface FetchGamesRespond {
+  count: number;
+  results: Game[];
+}
+
+const GameGrid = () => {
+  const [games, setGames] = useState<Game[]>([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    // use angle brackets to provide  generics type args
+    apiClient
+      .get<FetchGamesRespond>("/games")
+      .then((res) => setGames(res.data.results))
+      .catch((err) => setError(err.message));
+  });
+
+  return <div>GameGrid</div>;
+};
+
+export default GameGrid;
+```
+
+- Testing it out with unordered list:
+
+```
+return (
+  <ul>
+    {games.map((game) => (
+      <li key={game.id}>{game.name}</li>
+    ))}
+  </ul>
+);
+```
+
+- Added it to the `App` components:
+
+```
+<GridItem area="main">
+  <GameGrid />
+</GridItem>
+```
+
+- Final result:
+  ![image](https://gist.github.com/user-attachments/assets/989e54ac-5438-4dfd-9a9a-fb034ca6ea23)
+- Rendering error in `GameGrid` components markup:
+
+```
+return (
+  <>
+    {error && <Text>{error}</Text>}
+    <ul>
+      {games.map((game) => (
+        <li key={game.id}>{game.name}</li>
+      ))}
+    </ul>
+  </>
+);
+```
+
+- Alter the api to test out the error text message `apiClient.get<FetchGamesRespond>("/xgames")`:
+  ![image](https://gist.github.com/user-attachments/assets/05f35e94-b342-4ca0-ac3d-f05b34b51cb6)
