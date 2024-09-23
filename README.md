@@ -348,3 +348,69 @@ return (
 
 - Alter the api to test out the error text message `apiClient.get<FetchGamesRespond>("/xgames")`:
   ![image](https://gist.github.com/user-attachments/assets/05f35e94-b342-4ca0-ac3d-f05b34b51cb6)
+
+### Creating a Custom Hook for Fetching Games:
+
+- Currently our `GameGrid` components is involve in the process of making a HTTP requests, it knows about the type of request we going to send, knows about the endpoint and it should also need to know about the canceling requests in the future and this is something that we don't want in our components. Simply because our component should be primary responsible for returning markup and handling user interaction in high level.
+- Now we can either move our logic of making HTTP request inside a `Service` or moving the entire logic meaning the `useState` variable and `useEffect` inside a hook.
+- We going to follow the hook way this time:
+
+  - Add a new folder call `hook` in the `src` folder, then add a new file call `useGames.ts`
+  - In the new file we define a function `const useGames = () => {}` and export it. Now we get back to our `GameGrid` and moved the entire logic code to our `useGames.ts` and we also need to return the `games` and `error` object so we can use them in our components.
+
+  ```
+  import { useEffect, useState } from "react";
+  import apiClient from "../services/api-client";
+
+  // Create a interface to fulfill the shape of the response object with the schema on rawg
+  interface Game {
+    id: number;
+    name: string;
+  }
+
+  interface FetchGamesRespond {
+    count: number;
+    results: Game[];
+  }
+
+  const useGames = () => {
+    const [games, setGames] = useState<Game[]>([]);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+      // use angle brackets to provide  generics type args
+      apiClient
+        .get<FetchGamesRespond>("/xgames")
+        .then((res) => setGames(res.data.results))
+        .catch((err) => setError(err.message));
+    });
+
+    return { games, error };
+  };
+
+  export default useGames;
+  ```
+
+  - Our new `GameGrid` components:
+
+  ```
+  import { Text } from "@chakra-ui/react";
+  import useGames from "../hooks/useGames";
+
+  const GameGrid = () => {
+    const { games, error } = useGames();
+
+    return (
+      <>
+        {error && <Text>{error}</Text>}
+        <ul>
+          {games.map((game) => (
+            <li key={game.id}>{game.name}</li>
+          ))}
+        </ul>
+      </>
+    );
+  };
+
+  export default GameGrid;
+  ```
