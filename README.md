@@ -414,3 +414,162 @@ return (
 
   export default GameGrid;
   ```
+
+- Now our component is no longer need to make any HTTP request and it's primary responsible for returning markup, so now we should also make the `useGames` hook handle the cancellation:
+
+```
+import { useEffect, useState } from "react";
+import apiClient from "../services/api-client";
+import { CanceledError } from "axios";
+
+// Create a interface to fulfill the shape of the response object with the schema on rawg
+interface Game {
+  id: number;
+  name: string;
+}
+
+interface FetchGamesRespond {
+  count: number;
+  results: Game[];
+}
+
+const useGames = () => {
+  const [games, setGames] = useState<Game[]>([]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    // cancellation
+    const controller = new AbortController();
+    // use angle brackets to provide  generics type args
+    apiClient
+      .get<FetchGamesRespond>("/games", { signal: controller.signal })
+      .then((res) => setGames(res.data.results))
+      .catch((err) => {
+        if (err instanceof CanceledError) return;
+        setError(err.message);
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  return { games, error };
+};
+
+export default useGames;
+```
+
+### Building Game Cards:
+
+- Now we had to replaced the bullet point with a game cards component.
+- To create a card like layout/ design we can use the `Card` components from chakra, then inside this card we going to create a `Image` component and se should set the `src` to `game.background_image`.
+
+```
+interface GameCardProps {
+  game: Game;
+}
+
+const GameCard = ({ game }: GameCardProps) => {
+  return (
+    <Card>
+      <Image src={game.background_image} />
+    </Card>
+  );
+};
+```
+
+- According to the rawg games api documentation we have this properties called `background_image` which help get the image and we have to added it to our `game` interface to be able to set the source.
+
+```
+export interface Game {
+  id: number;
+  name: string;
+  background_image: string;
+}
+```
+
+- Right after our `Image` we need to add a `CardBody` component and simply render a heading: `<Heading>{game.name}</Heading>` to test out our applications.
+
+```
+const GameCard = ({ game }: GameCardProps) => {
+  return (
+    <Card>
+      <Image src={game.background_image} />
+      <CardBody>
+        <Heading>{game.name}</Heading>
+      </CardBody>
+    </Card>
+  );
+};
+```
+
+- To test out the implementation, we head back to our `GameGrid` components and change the `ul` to `SimpleGrid` components and set the columns to `columns={3}` and spacing our card components by 10 pixels each `spacing={10}`. Finally we replace our `li` with our new `GameCard` components:
+
+```
+const GameGrid = () => {
+  const { games, error } = useGames();
+
+  return (
+    <>
+      {error && <Text>{error}</Text>}
+      <SimpleGrid columns={3} spacing={10}>
+        {games.map((game) => (
+          <GameCard key={game.id} game={game} />
+        ))}
+      </SimpleGrid>
+    </>
+  );
+};
+```
+
+- The result:
+  ![image](https://gist.github.com/user-attachments/assets/69f3f19e-0d0d-40c8-83b5-8ad618f46a3d)
+
+- Currently, our game card component have a really sharp corner and it's really not have a look that's inviting so we'd prefer to create a more rounded corner.
+
+```
+const GameCard = ({ game }: GameCardProps) => {
+  return (
+    <Card borderRadius={10} overflow="hidden">
+      <Image src={game.background_image} />
+      <CardBody>
+        <Heading>{game.name}</Heading>
+      </CardBody>
+    </Card>
+  );
+};
+```
+
+![image](https://gist.github.com/user-attachments/assets/4703c63e-d1bf-4823-89d3-c5b279b032c0)
+
+- There's one more thing we can improve and that is our game heading, because right now the game heading is literally too big, so back to our card and here in the `Heading` component we simply set the `fontSize` to `2xl` (pre-declare font size in chakra documentation.)
+
+```
+<Card borderRadius={10} overflow="hidden">
+  <Image src={game.background_image} />
+  <CardBody>
+    <Heading fontSize="2xl">{game.name}</Heading>
+  </CardBody>
+</Card>
+```
+
+- With the simple display experience aside, we can now make our layout be responsive for each display screen it is shown to. In moblie devices we want it to have a single columns, on tablet we want to add 2 columns, on larger screen we want to have 3 or more columns.
+
+```
+<SimpleGrid columns={{ sm: 1, md: 2, lg: 3, xl: 5 }} spacing={10}>
+  {games.map((game) => (
+    <GameCard key={game.id} game={game} />
+  ))}
+</SimpleGrid>
+```
+
+- Mobile devices:
+  ![image](https://gist.github.com/user-attachments/assets/fe08fa5b-a159-4842-9326-51a6115909a9)
+
+- Tablet:
+  ![image](https://gist.github.com/user-attachments/assets/9d34e080-5256-4abc-9f62-468e5c790f9e)
+
+- Laptop(large screen):
+  ![image](https://gist.github.com/user-attachments/assets/e4b401eb-d707-49d1-98e8-61aca733cc3a)
+
+- Larger devices:
+  ![image](https://gist.github.com/user-attachments/assets/5f44b2b3-bf40-40c6-a085-53ef970db7ec)

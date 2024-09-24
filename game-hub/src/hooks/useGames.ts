@@ -3,9 +3,10 @@ import apiClient from "../services/api-client";
 import { CanceledError } from "axios";
 
 // Create a interface to fulfill the shape of the response object with the schema on rawg
-interface Game {
+export interface Game {
   id: number;
   name: string;
+  background_image: string;
 }
 
 interface FetchGamesRespond {
