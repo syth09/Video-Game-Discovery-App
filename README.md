@@ -562,9 +562,6 @@ const GameCard = ({ game }: GameCardProps) => {
 </SimpleGrid>
 ```
 
-- Mobile devices:
-  ![image](https://gist.github.com/user-attachments/assets/fe08fa5b-a159-4842-9326-51a6115909a9)
-
 - Tablet:
   ![image](https://gist.github.com/user-attachments/assets/9d34e080-5256-4abc-9f62-468e5c790f9e)
 
