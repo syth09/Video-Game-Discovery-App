@@ -2,11 +2,18 @@ import { useEffect, useState } from "react";
 import apiClient from "../services/api-client";
 import { CanceledError } from "axios";
 
+interface Platform {
+  id: number;
+  name: string;
+  slug: string;
+}
+
 // Create a interface to fulfill the shape of the response object with the schema on rawg
 export interface Game {
   id: number;
   name: string;
   background_image: string;
+  parent_platforms: { platform: Platform }[];
 }
 
 interface FetchGamesRespond {
