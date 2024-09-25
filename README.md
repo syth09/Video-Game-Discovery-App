@@ -573,3 +573,41 @@ const GameCard = ({ game }: GameCardProps) => {
 
 - Larger devices:
   ![image](https://gist.github.com/user-attachments/assets/5f44b2b3-bf40-40c6-a085-53ef970db7ec)
+
+### Displaying Platform Icons:
+
+- Displaying different icons for different platforms like: Windows, PlayStation, XBox, etc.
+- Each of our game objects which get return as a result from the HTTP request and each game have a properties called parent platform which show a object that represent each platform (We also had a `platform` properties which is a more comprehensive list which can indicate many version of the platform that a game can be use on).
+- To show the Icon we would had to look at the `parent_platform` properties:
+  ![image](https://gist.github.com/user-attachments/assets/c2eac1a7-7025-4ddf-adab-999985f9964e)
+- In this Array we have a bunch of object but each object is not a platform object, when we expend one of the object inside it would had a platform properties which is a platform object, so by following the design now we will have to add the `parent_platform` to our `Game` interface and we'd also had to define another interface which represent our `platform` object:
+
+```
+interface Platform {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+// Create a interface to fulfill the shape of the response object with the schema on rawg
+export interface Game {
+  id: number;
+  name: string;
+  background_image: string;
+  parent_platforms: { platform: Platform }[];
+}
+```
+
+- The tricky part here is that the design make the `parent_platform` here is not a array of platform (`Platform[]`) it's an array of object where each object has a properties call platform of type platform (`{ platform: Platform }[]`).
+- When we finish with the interface we can head back to our `GameCard` components and test out first if we can render the platform as a simple text in the card before showing an icon.
+
+```
+<CardBody>
+  <Heading fontSize="2xl">{game.name}</Heading>
+  {game.parent_platforms.map(({ platform }) => (
+    <Text>{platform.name}</Text>
+  ))}
+</CardBody>
+```
+
+![image](https://gist.github.com/user-attachments/assets/7094a10d-9b29-4581-b6a9-52f9dd165932)
