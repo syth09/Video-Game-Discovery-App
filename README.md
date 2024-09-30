@@ -855,3 +855,65 @@ return (
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/1711a553-2a97-47bc-afdf-5324c0a54b6c)
+
+### Getting Optimize Images:
+
+- Optimizing the image of the game card to speed up the loading process of the pages.
+- To render optimize images we need to modify the images URL and insert the `crop` parameter and to do that we'll need a new utilities or new services class to solve the problem.
+  - To “crop” an image is to remove or adjust the outside edges of an image (typically a photo) to improve framing or composition, draw a viewer's eye to the subject, or change the size or aspect ratio.
+- First, we added a new file in the `services` folder, name it `image-url.ts`, and in this module we should define a function `getCroppedImageURL` and this function should take `url` as a `string` then return a new `url`:
+
+```
+const getCroppedImageURL = (url: string) {
+
+}
+
+export default getCroppedImageURL;
+```
+
+- Inside our function we should find the `indexOf('media/')` then store it in a variable or a constanst `index`. Now to insert the `crop` parameter after `media` we should call `url.slice(0, index)` to slice the string and grab all the character from the beginning to `index`:
+
+```
+const getCroppedImageURL = (url: string) => {
+  const index = url.indexOf("media/");
+  url.slice(0, index);
+};
+
+export default getCroppedImageURL;
+```
+
+- But the index represent the starting position of our `media` parameter while we need to add the `crop` parameter after `media`, so up on the `index` constant we need to add the length of `media` parameter:
+
+```
+const getCroppedImageURL = (url: string) => {
+  // store media on a separate constant because we've repeated "media/" couple times.
+  const target = "media/";
+  const index = url.indexOf(target) + target.length;
+  url.slice(0, index);
+};
+
+export default getCroppedImageURL;
+```
+
+- Then we should add the `"crop/600/400/"` along with the rest of the character in the string `url.slice(index)`. Finally, we return the new url:
+
+```
+const getCroppedImageURL = (url: string) => {
+  // store media on a separate constant because we've repeated "media/" couple times.
+  const target = "media/";
+  const index = url.indexOf(target) + target.length;
+  return url.slice(0, index) + 'crop/600/400/' + url.slice(index);
+};
+
+export default getCroppedImageURL;
+```
+
+- Now we can test out implementation and see it in action by calling the `getCroppedImageURL` inside the `Image` component of our `GameCard` and pass the `game.background_image` as an argument:
+
+```
+<Image src={getCroppedImageURL(game.background_image)} />
+```
+
+- To verify that we are downloading smaller images, we open up the network tab in the dev tool and select `img` then we click on one of the images to inspect it and copy it url to new tab to verify it:
+  ![image](https://gist.github.com/user-attachments/assets/a031c177-cd9b-4b85-8b74-184e9e58536a)
+  ![image](https://gist.github.com/user-attachments/assets/7113bdcf-1f82-4877-9ea2-a4b0816a776d)
