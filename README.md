@@ -611,3 +611,143 @@ export interface Game {
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/7094a10d-9b29-4581-b6a9-52f9dd165932)
+
+- Re-render the display columns and the fonts before rendering the platform icon by using the React icon library:
+  ![image](https://gist.github.com/user-attachments/assets/2f21624a-2ed5-44d0-8285-f8ec7c7a8101)
+- To implement the icon first we install the library `npm i react-icons@versions`. Now to implement the icon we need a mapping between the name of the platform and an icon.
+- To render the icons we would needed a mapping between the name of a platform and an icon. The best implementation is that we move this entire logic to an separate components because if we keep the logic inside our `GameCard` it would be a distraction of what the `GameCard` components suppose to do which is rendering the game card itself:
+
+```
+{game.parent_platforms.map(({ platform }) => (
+  <Text>{platform.name}</Text>
+))}
+```
+
+- To an separate components call `PlatfromIconList.tsx` and in that component we should give it a `Props` which is going to be an array of platform objects, and before rendering the icon we should test out te component with text to see if it work with our `GameCard` properly or not:
+
+```
+import { Text } from "@chakra-ui/react";
+import { Platform } from "../hooks/useGames";
+
+interface PlatformIconListProps {
+  platforms: Platform[];
+}
+
+const PlatformIconList = ({ platforms }: PlatformIconListProps) => {
+  return (
+    <>
+      {platforms.map((platform) => (
+        <Text>{platform.name}</Text>
+      ))}
+    </>
+  );
+};
+
+export default PlatformIconList;
+```
+
+- Now we implement it into our `GameCard` components:
+
+```
+const GameCard = ({ game }: GameCardProps) => {
+  return (
+    <Card borderRadius={10} overflow="hidden">
+      <Image src={game.background_image} />
+      <CardBody>
+        <Heading fontSize="2xl">{game.name}</Heading>
+        // Rendering the Icon (Testing out with text)
+        <PlatformIconList
+          platforms={game.parent_platforms.map((p) => p.platform)}
+        />
+      </CardBody>
+    </Card>
+  );
+};
+```
+
+![image](https://gist.github.com/user-attachments/assets/59145da3-5589-4d5f-90f1-d99f3f8672ad)
+
+- They are working as expected so the only thing we need to do is to replace the text with the platform icons. Back to our `PlatformIconList` components, we should import the a bunch of component from the react icons library:
+
+```
+import {
+  FaWindows,
+  FaPlaystation,
+  FaXbox,
+  FaApple,
+  FaLinux,
+  FaAndroid
+} from "react-icons/fa";
+import { MdPhoneIphone } from "react-icons/md";
+import { SiNintendo } from "react-icons/si";
+import { BsGlobe } from "react-icons/bs";
+```
+
+- Next step is to map the name of each platform to an icon by using an `iconMap` object as a map, and this `iconMap` object would need to contain a key that represent the slug of each platform, because in each platform has a name and a slug:
+
+```
+  const iconMap = {
+    // name : PlayStation
+    // slug: playstation
+  };
+```
+
+- Implementing it:
+
+```
+  const iconMap = {
+    pc: FaWindows,
+    playstation: FaPlaystation,
+    xbox: FaXbox,
+    nintendo: SiNintendo,
+    mac: FaApple,
+    linux: FaLinux,
+    ios: MdPhoneIphone,
+    web: BsGlobe
+  };
+```
+
+- Now that we have this map object we can replace the `Text` component with an `Icon` components and we should annotate our `iconMap` to an object that have any type of string key in them (also call an `Index Signature` which represent a key or properties in this object).
+- By specify the `Index Signature` syntax we don't have to specify the name of these key inside `iconMap` and each key is also need to be map to a value of type `IconType` which is define in the react icons library:
+
+```
+const PlatformIconList = ({ platforms }: PlatformIconListProps) => {
+  const iconMap: { [key: string]: IconType } = {
+    pc: FaWindows,
+    playstation: FaPlaystation,
+    xbox: FaXbox,
+    nintendo: SiNintendo,
+    mac: FaApple,
+    linux: FaLinux,
+    android: FaAndroid,
+    ios: MdPhoneIphone,
+    web: BsGlobe
+  };
+
+  return (
+    <HStack>
+      {platforms.map((platform) => (
+        <Icon as={iconMap[platform.slug]} />
+      ))}
+    </HStack>
+  );
+};
+```
+
+![image](https://gist.github.com/user-attachments/assets/ee4232be-1917-401e-a6b0-21bbe7fd296a)
+
+- Improvement by altering the style of icon to be differ from the heading text:
+
+```
+  return (
+    // Spacing the icon for clearer view
+    <HStack margin={1}>
+      {platforms.map((platform) => (
+        // Darker shade of color for the icon to easier to dissect it from the heading
+        <Icon as={iconMap[platform.slug]} color="gray.500" />
+      ))}
+    </HStack>
+  );
+```
+
+![image](https://gist.github.com/user-attachments/assets/13ce4442-4725-4878-8434-e61a0bdbf3b5)
