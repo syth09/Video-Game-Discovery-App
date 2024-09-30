@@ -751,3 +751,107 @@ const PlatformIconList = ({ platforms }: PlatformIconListProps) => {
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/13ce4442-4725-4878-8434-e61a0bdbf3b5)
+
+### Displaying Critic Score:
+
+- Now we going to add a badge that contain the score that the game critic has assign to each game.
+- Each of our game properties that got fetch have a properties call `metacritic` and this is a number which value from 0 between 100. The color of the badge will be dependent on the score. The high score will be green, medium score will be yellow.
+- To create a component that sole use for displaying the critic score, first we'd need to go to our `useGames` hooks and add a new properties call metacritic to our `Game` interface:
+
+```
+export interface Game {
+  // same properties as before.
+  metacritic: number;
+}
+```
+
+- Next, we create a new components and call it `CriticScore.tsx`, inside the components let's use an interface to define the shape of props:
+
+```
+interface CriticScoreProps {
+  score: number;
+}
+
+const CriticScore = ({ score }: CriticScoreProps) => {
+  return <div>CriticScore</div>;
+};
+
+export default CriticScore;
+```
+
+- To render the score badge we'd needed to use the `Badge` components from chakra UI
+
+```
+const CriticScore = ({ score }: CriticScoreProps) => {
+  return <Badge>{score}</Badge>;
+};
+```
+
+- Now let's test it our by adding our new `CriticScore` components to our `GameCard`:
+
+```
+const GameCard = ({ game }: GameCardProps) => {
+  return (
+    <Card borderRadius={10} overflow="hidden">
+      <Image src={game.background_image} />
+      <CardBody>
+        <Heading fontSize="2xl">{game.name}</Heading>
+        <PlatformIconList
+          platforms={game.parent_platforms.map((p) => p.platform)}
+        />
+        <CriticScore score={game.metacritic} />
+      </CardBody>
+    </Card>
+  );
+};
+```
+
+![image](https://gist.github.com/user-attachments/assets/309dd95d-6013-449f-84cf-6b3e5f867fe9)
+
+- The next step is to style the `Badge` by putting the platform icons and the critic score side by side using the `HStack` to warp both the icon and the badge together, then to move the badge to the rightside of the card we need to use a flex style element `justifyContent={"space-between"}` so all the available spaces could be distributed to this 2 items:
+
+```
+  <CardBody>
+    <Heading fontSize="2xl">{game.name}</Heading>
+    <HStack justifyContent={"space-between"}>
+      <PlatformIconList
+        platforms={game.parent_platforms.map((p) => p.platform)}
+      />
+      <CriticScore score={game.metacritic} />
+    </HStack>
+  </CardBody>
+```
+
+![image](https://gist.github.com/user-attachments/assets/90da56b9-bd01-4313-b67d-8b048495611c)
+
+- Final improvement we can make on this badge is to make the look and feel of the badge more distinct. Back to our `CriticScore` components we can make the font-size bigger, so is the badge, and we can also make the badge border rounder:
+
+```
+const CriticScore = ({ score }: CriticScoreProps) => {
+  return (
+    <Badge fontSize="14px" paddingX={2} borderRadius='4px'>
+      {score}
+    </Badge>
+  );
+};
+```
+
+![image](https://gist.github.com/user-attachments/assets/9bff1763-acc1-44c0-82c6-ffda10b85ed5)
+
+- Last but not least we should make the color of our badge dependent on the score by setting up rules for it (e.g if the score is above 75 it should be green, if it's greater than 60 it should be yellow and so on). To implement this we declare a variable call `color` and set the rule to the `color` variable:
+
+```
+  let color = score > 75 ? "green" : score > 60 ? "yellow" : "";
+```
+
+- After that we should set the `colorScheme` to `color`:
+
+```
+return (
+  <Badge colorScheme={color} fontSize="14px" paddingX={2} borderRadius="4px">
+    {score}
+  </Badge>
+);
+```
+
+![image](https://gist.github.com/user-attachments/assets/1711a553-2a97-47bc-afdf-5324c0a54b6c)
