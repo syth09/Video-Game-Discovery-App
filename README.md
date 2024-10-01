@@ -917,3 +917,158 @@ export default getCroppedImageURL;
 - To verify that we are downloading smaller images, we open up the network tab in the dev tool and select `img` then we click on one of the images to inspect it and copy it url to new tab to verify it:
   ![image](https://gist.github.com/user-attachments/assets/a031c177-cd9b-4b85-8b74-184e9e58536a)
   ![image](https://gist.github.com/user-attachments/assets/7113bdcf-1f82-4877-9ea2-a4b0816a776d)
+
+### Improving User Experience with the Loading Skeleton:
+
+- To improve the UX we can add a loading skeleton on this page, so while we are waiting for our backend to fetch the data we gonna show the loading sheleton of the game card and the pages.
+- First we need to track the loading state of our hook by declaring another `useState` in our `useGames` hook then initialize it to false:
+
+```
+const useGames = () => {
+  // other useState hooks
+  const [isLoading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // same as before
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  return { games, error };
+};
+```
+
+- And just before we call our `api` we set the loading to true `setLoading(true);` and then after we finish loading we set it back to false and also need to return the `isLoad` from our hook:
+
+```
+const useGames = () => {
+  const [games, setGames] = useState<Game[]>([]);
+  const [error, setError] = useState("");
+  const [isLoading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // cancellation
+    const controller = new AbortController();
+    // use angle brackets to provide  generics type args
+
+    setLoading(true);
+    apiClient
+      .get<FetchGamesRespond>("/games", { signal: controller.signal })
+      .then((res) => {
+        setGames(res.data.results);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (err instanceof CanceledError) return;
+        setError(err.message);
+        setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  return { games, error, isLoading };
+};
+```
+
+- To render a Skeleton we should create a separate components and that components gonna look like a `GameCard` but it's not a `GameCard` because we can only render a `GameCard` if we had a game object and in this case we don't have a game object, so we want to render a skeleton.
+- Starting by creating a new file in the `components` folder and name it `GameCardSkeleton.tsx`.
+- Now in this component first we add a `Card` component from chakra, but inside our card we are not going to have an image instead we going to add a `Skeleton` (`Skeleton` define in chakra, it's like a placeholder for an image that is being loaded) then give it a height of 200px or something to test it out later.
+
+```
+import { Card, Skeleton } from "@chakra-ui/react";
+
+const GameCardSkeleton = () => {
+  return (
+    <Card>
+      <Skeleton height="200px" />
+    </Card>
+  );
+};
+
+export default GameCardSkeleton;
+```
+
+- After we add a body and other element to mimic our `GameCard` components:
+
+```
+const GameCardSkeleton = () => {
+  return (
+    <Card>
+      <Skeleton height="200px" />
+      <CardBody>
+        <SkeletonText />
+      </CardBody>
+    </Card>
+  );
+};
+```
+
+- Testing it out by adding it to our `GameGrid`. First we need to add the `isLoading` to our `useGames` in `GameGrid`, to render a skeleton we would needed an array with around 6 items as 6 skeleton being load on the screen:
+
+```
+const GameGrid = () => {
+  const { games, error, isLoading } = useGames();
+  const skeletons = [1, 2, 3, 4, 5, 6];
+
+  return (
+    <>
+      // grid content
+    </>
+  );
+};
+```
+
+- With our newly define skeleton now we can add a skeleton to the grid by the condition if the page is loading, and if the loading is true we going to `map()` each skeleton to a `GameCardSkeleton` components and set the key to skeleton:
+
+```
+<SimpleGrid
+  columns={{ sm: 1, md: 2, lg: 3, "2xl": 5 }}
+  padding="10px"
+  spacing={10}
+>
+  {isLoading &&
+    skeletons.map((skeleton) => <GameCardSkeleton key={skeleton} />)}
+  {games.map((game) => (
+    <GameCard key={game.id} game={game} />
+  ))}
+</SimpleGrid>
+```
+
+![image](https://gist.github.com/user-attachments/assets/07029c3f-2009-4e7f-90ab-a58beda20d18)
+
+- Our current skeleton implementation has a layout issue because our skeleton don't have the same width as our `GameCard`, so to ensure the consistencies we have to applied the same width to both our skeleton and our card.
+- Testing out by giving the card the width of 300px:
+
+  - Skeleton:
+
+  ```
+  <Card width="300px" borderRadius={10} overflow="hidden">
+    <Skeleton height="200px" />
+    <CardBody>
+      <SkeletonText />
+    </CardBody>
+  </Card>
+  ```
+
+  ![image](https://gist.github.com/user-attachments/assets/4e6afdb2-2853-401b-8bd9-c6a283ff7f1f)
+
+  - Card:
+
+  ```
+  <Card width="300px" borderRadius={10} overflow="hidden">
+    <Image src={getCroppedImageURL(game.background_image)} />
+    <CardBody>
+      <Heading fontSize="2xl">{game.name}</Heading>
+      <HStack justifyContent="space-between">
+        <PlatformIconList
+          platforms={game.parent_platforms.map((p) => p.platform)}
+        />
+        <CriticScore score={game.metacritic} />
+      </HStack>
+    </CardBody>
+  </Card>
+  ```
+
+  ![image](https://gist.github.com/user-attachments/assets/fe695fd1-d9a8-424e-9100-8b7f6437be87)
