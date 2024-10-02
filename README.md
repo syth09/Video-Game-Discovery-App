@@ -1203,3 +1203,197 @@ const GenreList = () => {
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/3351b891-bf5b-4ba7-a5d8-e44009c07ee3)
+
+### Fetching the Genre:
+
+- Building the side panel to display the game genre.
+- First build a component to fetch the genre and to fetch the genre we will also be needing a hooks that work similar to the hook that we use to fetch the game.
+- Creating a hooks for fetching the genre:
+
+```
+import { useEffect, useState } from "react";
+import apiClient from "../services/api-client";
+import { CanceledError } from "axios";
+
+interface Genre {
+  id: number;
+  name: string;
+}
+
+interface FetchGenresRespond {
+  count: number;
+  results: Genre[];
+}
+
+const useGenres = () => {
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [error, setError] = useState("");
+  const [isLoading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    setLoading(true);
+    apiClient
+      .get<FetchGenresRespond>("/genres", { signal: controller.signal })
+      .then((res) => {
+        setGenres(res.data.results);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (err instanceof CanceledError) return;
+        setError(err.message);
+        setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  return { genres, error, isLoading };
+};
+
+export default useGenres;
+```
+
+- Implement the hooks onto the component:
+
+```
+const GenreList = () => {
+  const { genres } = useGenres();
+
+  return (
+    <ul>
+      {genres.map((genre) => (
+        <li key={genre.id}>{genre.name}</li>
+      ))}
+    </ul>
+  );
+};
+```
+
+- Adding it to the side panel in the `App` components to test it out:
+
+```
+<Show above="lg">
+  <GridItem area="aside">
+    <GenreList />
+  </GridItem>
+</Show>
+```
+
+![image](https://gist.github.com/user-attachments/assets/3351b891-bf5b-4ba7-a5d8-e44009c07ee3)
+
+### Creating a Generic Data Fetching:
+
+- Creating a generic data fetching hook to avoid duplicated code in our applications, make it reusable easier to maintain and refactor.
+
+```
+import { useEffect, useState } from "react";
+import apiClient from "../services/api-client";
+import { CanceledError } from "axios";
+
+interface FetchRespond<T> {
+  count: number;
+  results: T[];
+}
+
+const useData = <T>(endpoint: string) => {
+  const [data, setData] = useState<T[]>([]);
+  const [error, setError] = useState("");
+  const [isLoading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    setLoading(true);
+    apiClient
+      .get<FetchRespond<T>>(endpoint, { signal: controller.signal })
+      .then((res) => {
+        setData(res.data.results);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (err instanceof CanceledError) return;
+        setError(err.message);
+        setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  return { data, error, isLoading };
+};
+
+export default useData;
+```
+
+- Now we going to test it out on our `GenreList`, but first we need to export the data to the `useGenre` hooks:
+- `useGenres` Hooks:
+
+```
+import useData from "./useData";
+
+export interface Genre {
+  id: number;
+  name: string;
+}
+
+const useGenres = () => useData<Genre>('/genres')
+
+export default useGenres;
+```
+
+![image](https://gist.github.com/user-attachments/assets/bdc0e25e-01eb-447f-b114-e60870c94d10)
+
+- Also need to implement the same implementation onto the `useGames`:
+
+```
+import useData from "./useData";
+
+export interface Platform {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+export interface Game {
+  id: number;
+  name: string;
+  background_image: string;
+  parent_platforms: { platform: Platform }[];
+  metacritic: number;
+}
+
+const useGames = () => useData<Game>('/games');
+
+export default useGames;
+```
+
+- As we alter our `useGames` to implement the generic fetch, we'd also need to switch up the mapping of each game in our game card by changing our implementation where we are mapping our game which is the `GameGrid` components:
+
+```
+const GameGrid = () => {
+  // change from games to data
+  const { data, error, isLoading } = useGames();
+  const skeletons = [1, 2, 3, 4, 5, 6];
+
+  return (
+    <>
+      {error && <Text>{error}</Text>}
+      <SimpleGrid
+        columns={{ sm: 1, md: 2, lg: 3, "2xl": 5 }}
+        padding="10px"
+        spacing={10}
+      >
+        // genre
+        // change the `games.map` to `data.map`
+        {data.map((game) => (
+          <GameCardContainer>
+            <GameCard key={game.id} game={game} />
+          </GameCardContainer>
+        ))}
+      </SimpleGrid>
+    </>
+  );
+};
+```
