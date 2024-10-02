@@ -1457,6 +1457,7 @@ const GenreList = () => {
 ![image](https://gist.github.com/user-attachments/assets/dfc28b73-1673-46c5-bdd2-473f5f982fb4)
 
 - Now we render the label using the `Text` components:
+
 ```
 <List>
   {data.map((genre) => (
@@ -1473,8 +1474,11 @@ const GenreList = () => {
   ))}
 </List>
 ```
+
 ![image](https://gist.github.com/user-attachments/assets/ce908b3b-80b6-4c30-ad9b-02badef85ea5)
+
 - Small styles apply to our `App.tsx` component make the side panel have a horizontal padding
+
 ```
 <Show above="lg">
   <GridItem area="aside" paddingX="10px">
@@ -1482,4 +1486,61 @@ const GenreList = () => {
   </GridItem>
 </Show>
 ```
+
 ![image](https://gist.github.com/user-attachments/assets/76829497-ca52-46e1-bd0d-88b95984dc08)
+
+- Applying a fixed width to the side panel columns so if we ever had more real estate on the screen our `GameGrid` would stretched and takes up the available space.
+- To define the width for our columns first we define a `templateColumns` and set it to an object because we have 2 different scenario:
+
+  - The base scenario where we have only a single columns and a second scenario where we have 2 columns:
+
+  ```
+  <Grid
+    templateAreas={{
+      base: `"nav" " main"`,
+      lg: `"nav nav" "aside main"`
+    }}
+    templateColumns={{
+
+    }}
+  >
+  ```
+
+  - On the second scenario on our `GameCard` we should make it responsive by removing the fix width that we apply to them earlier in our project:
+
+  ```
+  const GameCardContainer = ({ children }: GameCardContainerProps) => {
+    return (
+      <Box borderRadius={10} overflow="hidden">
+        {children}
+      </Box>
+    );
+  };
+  ```
+
+  - We can also remove some extra spacing to make the card bigger
+
+  ```
+  <SimpleGrid
+    columns={{ sm: 1, md: 2, lg: 3, "2xl": 5 }}
+    padding="10px"
+    spacing={3}
+  >
+  ```
+
+  ![image](https://gist.github.com/user-attachments/assets/27268c1a-1d08-454b-b8dd-a733907f9206)
+
+- Check working status with compatible devices:
+
+  - Mobile:
+    ![image](https://gist.github.com/user-attachments/assets/29571e2c-4d9a-4445-9d0c-06afd70a7d17)
+
+  - Tablet:
+    ![image](https://gist.github.com/user-attachments/assets/b1b75336-1f92-4c2d-91e8-7f1ebf03d502)
+
+  - Laptop:
+    ![image](https://gist.github.com/user-attachments/assets/cc2ad2c7-12c2-4246-9a7a-b7c1b6604149)(Laptop 1024px)
+    ![image](https://gist.github.com/user-attachments/assets/e6ccc902-9960-4d36-9712-9d9d7b3aa268)(Laptop large screen 1440px)
+
+  - Bigger devices:
+    ![image](https://gist.github.com/user-attachments/assets/4dbbd39d-c966-4e91-8aeb-8a43b06bdb31)
