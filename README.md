@@ -1455,3 +1455,31 @@ const GenreList = () => {
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/dfc28b73-1673-46c5-bdd2-473f5f982fb4)
+
+- Now we render the label using the `Text` components:
+```
+<List>
+  {data.map((genre) => (
+    <ListItem key={genre.id} paddingY="5px">
+      <HStack>
+        <Image
+          boxSize="32px"
+          borderRadius={8}
+          src={getCroppedImageURL(genre.image_background)}
+        />
+        <Text>{genre.name}</Text>
+      </HStack>
+    </ListItem>
+  ))}
+</List>
+```
+![image](https://gist.github.com/user-attachments/assets/ce908b3b-80b6-4c30-ad9b-02badef85ea5)
+- Small styles apply to our `App.tsx` component make the side panel have a horizontal padding
+```
+<Show above="lg">
+  <GridItem area="aside" paddingX="10px">
+    <GenreList />
+  </GridItem>
+</Show>
+```
+![image](https://gist.github.com/user-attachments/assets/76829497-ca52-46e1-bd0d-88b95984dc08)
