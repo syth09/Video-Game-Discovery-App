@@ -1124,3 +1124,82 @@ const GameCardContainer = ({ children }: GameCardContainerProps) => {
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/1b6647b7-4322-4c56-92ad-e8ef823134db)
+
+### Fetching the Genre:
+
+- Building the side panel to display the game genre.
+- First build a component to fetch the genre and to fetch the genre we will also be needing a hooks that work similar to the hook that we use to fetch the game.
+- Creating a hooks for fetching the genre:
+
+```
+import { useEffect, useState } from "react";
+import apiClient from "../services/api-client";
+import { CanceledError } from "axios";
+
+interface Genre {
+  id: number;
+  name: string;
+}
+
+interface FetchGenresRespond {
+  count: number;
+  results: Genre[];
+}
+
+const useGenres = () => {
+  const [genres, setGenres] = useState<Genre[]>([]);
+  const [error, setError] = useState("");
+  const [isLoading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    setLoading(true);
+    apiClient
+      .get<FetchGenresRespond>("/genres", { signal: controller.signal })
+      .then((res) => {
+        setGenres(res.data.results);
+        setLoading(false);
+      })
+      .catch((err) => {
+        if (err instanceof CanceledError) return;
+        setError(err.message);
+        setLoading(false);
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  return { genres, error, isLoading };
+};
+
+export default useGenres;
+```
+
+- Implement the hooks onto the component:
+
+```
+const GenreList = () => {
+  const { genres } = useGenres();
+
+  return (
+    <ul>
+      {genres.map((genre) => (
+        <li key={genre.id}>{genre.name}</li>
+      ))}
+    </ul>
+  );
+};
+```
+
+- Adding it to the side panel in the `App` components to test it out:
+
+```
+<Show above="lg">
+  <GridItem area="aside">
+    <GenreList />
+  </GridItem>
+</Show>
+```
+
+![image](https://gist.github.com/user-attachments/assets/3351b891-bf5b-4ba7-a5d8-e44009c07ee3)
