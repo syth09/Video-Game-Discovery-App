@@ -1397,3 +1397,61 @@ const GameGrid = () => {
   );
 };
 ```
+
+### Displaying the Genre:
+
+- Displaying the genre with it corresponding images that's provide by rawg api. First and foremost, we need to add a new properties call image_background to our `Genre` inteface:
+
+```
+export interface Genre {
+  id: number;
+  name: string;
+  image_background: string;
+}
+```
+
+- Then we go to our `GenreList` components and replace the `ul` element with the `List` component that help us render a list without any bullet points that's pre-define by chakra. Similarly, we should change our `li` to `ListItem`.
+- Now in the `ListItem` we should add a horizontal stack `HStack` so we can line up the image and the label of the genre horizontally.
+
+```
+const GenreList = () => {
+  const { data } = useGenres();
+
+  return (
+    <List>
+      {data.map((genre) => (
+        <ListItem key={genre.id}>
+          <HStack>
+          </HStack>
+        </ListItem>
+      ))}
+    </List>
+  );
+};
+```
+
+- Inside the `HStack` we add an `Image` by chakra and because we rendering the list of genre on our side panel our image should be small so we will set our `boxSize` to 32px and also we should set the `borderRadius` to make the image rounder, finally we set the `src` to the background image:
+
+```
+const GenreList = () => {
+  const { data } = useGenres();
+
+  return (
+    <List>
+      {data.map((genre) => (
+        <ListItem key={genre.id}>
+          <HStack>
+            <Image
+              boxSize="32px"
+              borderRadius={8}
+              src={getCroppedImageURL(genre.image_background)}
+            />
+          </HStack>
+        </ListItem>
+      ))}
+    </List>
+  );
+};
+```
+
+![image](https://gist.github.com/user-attachments/assets/dfc28b73-1673-46c5-bdd2-473f5f982fb4)
