@@ -1072,3 +1072,55 @@ const GameGrid = () => {
   ```
 
   ![image](https://gist.github.com/user-attachments/assets/fe695fd1-d9a8-424e-9100-8b7f6437be87)
+
+### Refactor: Removing Duplicate Styles
+
+- Removing the duplicated styles by creating a component that will be acting as a container for our card. In this container we going to return a `Box` component which is defined in chakra when it got render it return a `div` and we going to apply those style to the `Box`:
+
+```
+import { Box } from "@chakra-ui/react";
+
+const GameCardContainer = () => {
+  return <Box width="300px" borderRadius={10} overflow="hidden"></Box>;
+};
+
+export default GameCardContainer;
+```
+
+- After having a single place where we define the basic style of our card, now we should pass a `GameCard` or `GameCardSkeleton` as a child to this components:
+
+```
+import { ReactNode } from "react";
+
+interface GameCardContainerProps {
+  children: ReactNode;
+}
+
+const GameCardContainer = ({ children }: GameCardContainerProps) => {
+  return <Box width="300px" borderRadius={10} overflow="hidden"></Box>;
+};
+```
+
+- Then we go back to our `GameGrid` components to wrap our `GameCard` and `GameCardSkeleton` inside our container:
+
+```
+<SimpleGrid
+  columns={{ sm: 1, md: 2, lg: 3, "2xl": 5 }}
+  padding="10px"
+  spacing={10}
+>
+  {isLoading &&
+    skeletons.map((skeleton) => (
+      <GameCardContainer>
+        <GameCardSkeleton key={skeleton} />
+      </GameCardContainer>
+    ))}
+  {games.map((game) => (
+    <GameCardContainer>
+      <GameCard key={game.id} game={game} />
+    </GameCardContainer>
+  ))}
+</SimpleGrid>
+```
+
+![image](https://gist.github.com/user-attachments/assets/1b6647b7-4322-4c56-92ad-e8ef823134db)
