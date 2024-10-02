@@ -1544,3 +1544,33 @@ const GenreList = () => {
 
   - Bigger devices:
     ![image](https://gist.github.com/user-attachments/assets/4dbbd39d-c966-4e91-8aeb-8a43b06bdb31)
+
+### Showing the Spinner:
+
+- Showing a loading spinner while we are waiting for the genre to be fetch.
+- In our `GenreList` we simply grab the `isLoading` from the hook, then we define the logic by saying if the `isLoading` is true then we simply return the `Spinner` component from chakra:
+
+```
+const { data, isLoading } = useGenres();
+
+if (isLoading) return <Spinner />;
+```
+
+![image](https://gist.github.com/user-attachments/assets/1b0e5c6c-9922-43dc-8bc3-5015bc1afcd5)
+
+- Error handler:
+
+```
+const { data, isLoading, error } = useGenres();
+
+if (error) return null;
+if (isLoading) return <Spinner />;
+```
+
+- Implement error to test out the handler:
+
+```
+const useGenres = () => useData<Genre>("/genresx");
+```
+
+![image](https://gist.github.com/user-attachments/assets/d228fd1f-3b49-4742-8dc3-91a383609f20)
