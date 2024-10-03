@@ -1858,3 +1858,166 @@ const GenreList = ({ selectedGenre, onSelectGenre }: Props) => {
 - Indie game result:
 
 ![image](https://gist.github.com/user-attachments/assets/1e51795f-470c-401d-bd1d-391231b9a98f)
+
+### Building a Platform Selector:
+
+- Now we going to add a dropdown list for selecting the platform of the games.
+- First, let's go ahead and add a new component and name it `PlatformSelector.tsx`. In this component we going to return a `Menu` define in chakra, it's use to render a beautiful dropdown list.
+- The `Menu` component is a composite component so it has different children. For starter we should add a `MenuButton` and we want to render it as a regular button then we give it a label like `Platforms`:
+
+```
+import { Button, Menu, MenuButton } from "@chakra-ui/react";
+
+const PlatformSelector = () => {
+  return (
+    <Menu>
+      <MenuButton as={Button}>Platforms</MenuButton>
+    </Menu>
+  );
+};
+
+export default PlatformSelector;
+```
+
+- When the user click on this button the menu gonna be open then we'll see the item. We can also improve this by adding an icon using bootsrap:
+
+```
+<Menu>
+  <MenuButton as={Button} rightIcon={<BsChevronDown />}></MenuButton>
+</Menu>
+```
+
+- Right after we would wanted to add a `MenuList` and inside the `MenuList` we add one or more `MenuItem`:
+
+```
+const PlatformSelector = () => {
+  return (
+    <Menu>
+      <MenuButton as={Button} rightIcon={<BsChevronDown />}></MenuButton>
+      <MenuList>
+        <MenuItem>Item 1</MenuItem>
+        <MenuItem>Item 2</MenuItem>
+        <MenuItem>Item 3</MenuItem>
+      </MenuList>
+    </Menu>
+  );
+};
+```
+
+- Now let's test our application by adding the component to our `App` component and add our `PlatformSelector` above our `GameGrid`:
+
+```
+function App() {
+  const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
+
+  return (
+    <Grid
+      templateAreas={{
+        base: `"nav" " main"`,
+        lg: `"nav nav" "aside main"`
+      }}
+      templateColumns={{}}
+    >
+      <GridItem area="nav">
+        <NavBar />
+      </GridItem>
+      <Show above="lg">
+        // same as before
+      </Show>
+      <GridItem area="main">
+        <PlatformSelector />
+        <GameGrid selectedGenre={selectedGenre} />
+      </GridItem>
+    </Grid>
+  );
+}
+```
+
+![image](https://gist.github.com/user-attachments/assets/ae1dcf7e-00d6-4a02-8690-21a8355b8445)
+
+- Now we should render these `MenuItem` dynamically and to do that we going to use a different endpoint in our rawg api documentation. Here in the documentation we have an platforms endpoint and we have two options it's to render either the list video game platforms or the list of parent platforms.
+  ![image](https://gist.github.com/user-attachments/assets/76db95b0-a955-437f-9b24-2b4a125063d4)
+
+- In the `Menu` situation we want to render the list of parent platforms which is shorter and easier to use. Now we're going to create a hook to fetch data from the platforms endpoint:
+  ![image](https://gist.github.com/user-attachments/assets/735145eb-ea76-4fb7-89f9-d2b7fa047dc2)
+
+- In the `usePlatforms` hook first we need to define an interface call `Platfrom` and our `Platform` object have 3 properties namely id, name, slug:
+
+```
+interface Platform {
+  id: number;
+  name: string;
+  slug: string;
+}
+```
+
+- Then we define a custom hook `usePlatforms` to call the `useData` hook as the endpoint we pass `'/platforms/lists/parents'`, and we should also add our interface to it:
+
+```
+import useData from "./useData";
+
+interface Platform {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+const usePlatforms = () => useData<Platform>('/platforms/lists/parents')
+
+export default usePlatforms;
+```
+
+- Now we go back to our `PlatformSelector` and use our newly created hook then get the `data`. Finally use it to render the `MenuItem`
+
+```
+import { Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
+import { BsChevronDown } from "react-icons/bs";
+import usePlatforms from "../hooks/usePlatforms";
+
+const PlatformSelector = () => {
+  const { data } = usePlatforms();
+
+  return (
+    <Menu>
+      <MenuButton as={Button} rightIcon={<BsChevronDown />}>
+        Platforms
+      </MenuButton>
+      <MenuList>
+        {data.map((platform) => (
+          <MenuItem key={platform.id}>{platform.name}</MenuItem>
+        ))}
+      </MenuList>
+    </Menu>
+  );
+};
+
+export default PlatformSelector;
+```
+
+![image](https://gist.github.com/user-attachments/assets/cdbeff04-ab14-4e94-b182-55f47b19a1cf)
+
+- Error handling by simply grab the `error` from our hook and render it same as the `Genre`:
+
+```
+const { data, error } = usePlatforms();
+
+if (error) return null;
+```
+
+- Testing it out by messing up the endpoint to see if it's gone or not on the wrong endpoint:
+
+```
+import useData from "./useData";
+
+interface Platform {
+  id: number;
+  name: string;
+  slug: string;
+}
+
+const usePlatforms = () => useData<Platform>('/xplatforms/lists/parents')
+
+export default usePlatforms;
+```
+
+![image](https://gist.github.com/user-attachments/assets/d11ad219-3f88-4048-b680-3f7ee477090c)
