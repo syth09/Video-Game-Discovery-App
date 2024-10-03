@@ -1574,3 +1574,287 @@ const useGenres = () => useData<Genre>("/genresx");
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/d228fd1f-3b49-4742-8dc3-91a383609f20)
+
+### Filtering the Games by Genre:
+
+- The first thing we need to do is replace our `Text` component in the `GenreList` to a `Button` so we can click on our genre then we should set the `variant` to a link so our button have an appearance similar to a link:
+
+```
+<Button fontSize="lg" variant="link">
+  {genre.name}
+</Button>
+```
+
+![image](https://gist.github.com/user-attachments/assets/d850c499-e286-4a7c-a7fa-672d7fea0d66)
+
+- Now let handle the click event, let's test it out by printing it on the console.
+
+```
+<Button
+  onClick={() => console.log(genre)}
+  fontSize="lg"
+  variant="link"
+>
+  {genre.name}
+</Button>
+```
+
+![image](https://gist.github.com/user-attachments/assets/9bd14cb9-4dea-4e70-a32b-8ebfedb6ab97)
+
+- Now we need to share a state from our selected genre with our `GameGrid`, and to share a state between two components we would need to lift the state to the closest parent, the closet parent of the `GenreList` and the `GameGrid` is our `App` component.
+- We now have to go to our `App` component and declare a `useState` variable for storing the selected genre:
+
+```
+function App() {
+  const [selectedGenre, setSelectedGenre] = useState(null);
+
+  return (
+    <Grid
+      templateAreas={{
+        base: `"nav" " main"`,
+        lg: `"nav nav" "aside main"`
+      }}
+      templateColumns={{}}
+    >
+     // same grid content as before
+    </Grid>
+  );
+}
+```
+
+- With this implementation we cannot set `selectedGenre` to a different value other than `null` because the react compiler doesn't know that this variable can store `Genre` object, so in our `useState` we need to type in a generic type argument and say `Genre`, so that our variable can hold either a `Genre` object or `null`:
+
+```
+  const [selectedGenre, setSelectedGenre] = useState<Genre | null>(null);
+```
+
+- Now when we select a genre our `GenreList` component should notice our `App` component to set the `selectedGenre` because the component that hold the state should be the one to update it, so we should go back to our `GenreList` and add a props for passing a callback function:
+
+```
+interface Props {
+  onSelectGenre: (genre: Genre) => void;
+}
+```
+
+- Then instead of logging the genre on the console pass it to the `onSelectGenre`:
+
+```
+  <Button
+    onClick={() => onSelectGenre(genre)}
+    fontSize="lg"
+    variant="link"
+  >
+    {genre.name}
+  </Button>
+```
+
+- And we also had to pass it to our `GenreList` on our `App` components:
+
+```
+  <Show above="lg">
+    <GridItem area="aside" paddingX="10px">
+      <GenreList onSelectGenre={(genre) => setSelectedGenre(genre)} />
+    </GridItem>
+  </Show>
+```
+
+![image](https://gist.github.com/user-attachments/assets/b12ad817-1360-46b6-83e6-394302f36a4a)
+
+- In our `App` component we have a state variable that hold the selected components.
+- The next step is passing this onto our `GameGrid` so it can be pass onto the backend while fetching the game.
+- In our `GameGrid` we should also add a props:
+
+```
+interface Props {
+  selectedGenre: Genre | null;
+}
+
+const GameGrid = ({ selectedGenre }: Props) => {
+  const { data, error, isLoading } = useGames(selectedGenre);
+  const skeletons = [1, 2, 3, 4, 5, 6];
+```
+
+- Because we pass it on our `useGames` hook we also had to modify the hooks to have a parameter of `selectedGenre: Genre | null`:
+
+```
+const useGames = (selectedGenre: Genre | null) => useData<Game>('/games');
+```
+
+- then we pass it on our `useData` hook by change from taking only the `endpoint` data to `AxiosRequestConfig` object.
+- We can give this hook a second parameter call `requestConfig` of type `AxiosRequestConfig` and make it optional so we don't always have to pass it:
+
+```
+const useData = <T>(endpoint: string, requestConfig?: AxiosRequestConfig)
+```
+
+- Now to filter game by genre, we have to passed the genre as a query string parameter because in our rawg api documentation in the games endpoint at the list of games we have a parameter call genre:
+
+![image](https://gist.github.com/user-attachments/assets/3fa6fbe3-c2eb-4265-a8f6-9228ccaf284d)
+
+- Which include a bunch of value and separate by comma, we can pass genre id or genre slug. Back to the `useGames` hook we add an object, in this object we set `params` and we set `params` to an object and in that object we set `genres` to `selectedGenre.id`
+
+```
+const useGames = (selectedGenre: Genre | null) => useData<Game>('/games', { params: {genres: selectedGenre?.id}});
+```
+
+- After that we get back to our `useData` hooks and spread the `requestConfig` object to add any additional properties:
+
+```
+const useData = <T>(endpoint: string, requestConfig?: AxiosRequestConfig) => {
+  // useState variable same as before
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    setLoading(true);
+    apiClient
+      .get<FetchRespond<T>>(endpoint, { signal: controller.signal, ...requestConfig })
+      .then((res) => {
+        // same as before
+      })
+      .catch((err) => {
+        // same as before
+      });
+
+    return () => controller.abort();
+  }, []);
+
+  return { data, error, isLoading };
+};
+```
+
+- Because we're passing to our `useData` hook an empty array of dependencies we're only fetching the only once, the first time when a component is render, to solve this issue we need to pass an array of dependecies there, so when the `selectedGenre` is rendered we send another request to get the game that match the `selectedGenre`
+- We will start with adding a third parameter as our dependencies:
+
+```
+const useData = <T>(endpoint: string, requestConfig?: AxiosRequestConfig, deps?: any[]) => {
+  // useState variable same as before
+
+  useEffect(() => {
+    // same as before
+  }, []);
+
+  return { data, error, isLoading };
+};
+```
+
+- Here we call this `deps` which is going to be an array of dependencies, at this point we don't know the type of those denpendencies so we have to use the `any[]` array, then we need to spread the dependencies array:
+
+```
+const useData = <T>(endpoint: string, requestConfig?: AxiosRequestConfig, deps?: any[]) => {
+  // useState variable same as before
+
+  useEffect(() => {
+    // same as before
+  }, [...deps]);
+
+  return { data, error, isLoading };
+};
+```
+
+- But this spread operator on the dependencies have an error:
+  ![image](https://gist.github.com/user-attachments/assets/353871dc-4a22-4d20-ae02-f0249eede6cd)
+- Basically what it's trying to say is that because we declare the `deps` as optional it could be undefined and we cannot spread an undefined object, so here we need to say if `deps` is truthy we going to spread it `[...deps]` otherwise we're going to pass an empty array `[]`:
+
+```
+const useData = <T>(endpoint: string, requestConfig?: AxiosRequestConfig, deps?: any[]) => {
+  // useState variable same as before
+
+  useEffect(() => {
+    // same as before
+  }, deps ? [...deps] : []);
+
+  return { data, error, isLoading };
+};
+```
+
+- Now that our `useData` hooks receive an dependencies we should specify them when call an `useData` hook, so after we pass the `requestConfig` we add another argument as our array of dependencies and in this case we want to be dependent on `selectedGenre?.id`:
+
+```
+const useGames = (selectedGenre: Genre | null) => useData<Game>('/games', { params: {genres: selectedGenre?.id}}, [selectedGenre?.id]);
+```
+
+- Finally, we go back to our `App` component and pass the `selectedGenre` to our `GameGrid` :
+
+```
+<GridItem area="main">
+  <GameGrid selectedGenre={selectedGenre} />
+</GridItem>
+```
+
+- Indie game result:
+
+![image](https://gist.github.com/user-attachments/assets/5c84ff15-5b09-40b2-9387-989dcefaf93d)
+
+- action game result:
+
+![image](https://gist.github.com/user-attachments/assets/a41aa42b-52f0-4f1e-9520-c11ba9b8d20b)
+
+- Racing game result:
+
+![image](https://gist.github.com/user-attachments/assets/dcc3b21c-b8bb-4db5-b3f7-d0325bd2b960)
+
+### Highlighting the Selected Genre:
+
+- To improved the user experienced we're going to highlight the selected genre.
+- We should have the `App` component pass the `selectedGenre` to our `GenreList` and in the `GenreList` components when we render the button we'll set the font-weight dynamically. If we rendering the selected genre we make the font bold otherwise we rendered it as normal.
+- So in our `GenreList` we need to add a new properties call `selectedGenre` of type `Genre` or `null`:
+
+```
+interface Props {
+  onSelectGenre: (genre: Genre) => void;
+  selectedGenre: Genre | null;
+}
+
+const GenreList = ({ selectedGenre, onSelectGenre }: Props) => {
+  const { data, isLoading, error } = useGenres();
+
+  if (error) return null;
+  if (isLoading) return <Spinner />;
+
+  return (
+    <List>
+      {data.map((genre) => (
+        <ListItem key={genre.id} paddingY="5px">
+          <HStack>
+            <Image
+              boxSize="32px"
+              borderRadius={8}
+              src={getCroppedImageURL(genre.image_background)}
+            />
+            <Button
+              fontWeight={genre.id === selectedGenre?.id ? "bold" : "normal"}
+              onClick={() => onSelectGenre(genre)}
+              fontSize="lg"
+              variant="link"
+            >
+              {genre.name}
+            </Button>
+          </HStack>
+        </ListItem>
+      ))}
+    </List>
+  );
+};
+```
+
+- Next we pass the `selectedGenre` to the `GenreList` in our `App` components:
+
+```
+<Show above="lg">
+  <GridItem area="aside" paddingX="10px">
+    <GenreList
+      selectedGenre={selectedGenre}
+      onSelectGenre={(genre) => setSelectedGenre(genre)}
+    />
+  </GridItem>
+</Show>
+```
+
+- Action game result:
+
+![image](https://gist.github.com/user-attachments/assets/1829e97b-2261-42e3-9298-c7c749fd0ba8)
+
+- Indie game result:
+
+![image](https://gist.github.com/user-attachments/assets/1e51795f-470c-401d-bd1d-391231b9a98f)
