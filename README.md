@@ -2186,3 +2186,128 @@ export default usePlatforms;
   - Non platform select render `'Platform'`:
 
   ![image](https://gist.github.com/user-attachments/assets/25f65811-4a2b-48ad-9e6e-c16dce3c34d1)
+
+### Refactoring: Extracting a Query Object:
+
+- Currently our `App` component only have 2 state variable but as our App grow and have more featured we'll need even more variable for tracking thing like sort order and search, etc. Adding a bunch of variable in our `App` component and passing them around is just ugly and hard to maintain, it caused clogging in our code and make it stink.
+- A way to solve this problem is that we should pack relate variable inside an object.
+- By using a `Query Object Pattern` to solve this problem, so we'll create a query object that contain all the information we need to query the game, with this our code will be cleaner and easier to understand.
+- First we're going to define an interface name `GameQuery` in our `App` component:
+
+```
+interface GameQuery {
+
+}
+```
+
+- In this interface we'll add 2 properties, an `genre` which can be a `Genre` object or `null` as well as `platform` having the same implement:
+
+```
+interface GameQuery {
+  genre: Genre | null;
+  platform: Platform | null;
+}
+```
+
+- Now we going to replace the two old `useState` variable with a `useState` variable of type `GameQuery`, and we should initialize it with an empty object not `null` because we will always have a query object, but the properties of the imply object maybe null:
+
+```
+  const [gameQuery, setGameQuery] = useState<GameQuery>({} as GameQuery);
+```
+
+- Next step is to refactor each item step by step:
+
+  - On our `GenreList` we should pass it the `gameQuery.genre` referencing the genre of it instead of using `selectedGenre`:
+
+  ```
+  <GridItem area="aside" paddingX="10px">
+    <GenreList
+      selectedGenre={gameQuery.genre}
+      onSelectGenre={(genre) => setSelectedGenre(genre)}
+    />
+  </GridItem>
+  ```
+
+  - Same goes for the `setGameQuery` function but we should pass a new object for it. First we should spread the `gameQuery` object then we add the new genre:
+
+  ```
+  <GridItem area="aside" paddingX="10px">
+    <GenreList
+      selectedGenre={gameQuery.genre}
+      onSelectGenre={(genre) => setGameQuery({ ...gameQuery, genre })}
+    />
+  </GridItem>
+  ```
+
+  - Similarly on the main code we should implement the same thing:
+
+  ```
+  <GridItem area="main">
+    <PlatformSelector
+      selectedPlatform={gameQuery.platform}
+      onSelectPlatform={(platform) => setGameQuery({...gameQuery, platform})}
+    />
+    <GameGrid
+      selectedPlatform={gameQuery.platform}
+      selectedGenre={gameQuery.genre}
+    />
+  </GridItem>
+  ```
+
+- Now we need to use the same technique in our `GameGrid`. Instead of passing a bunch of variable here, we should pass an object. First off before we implement anything we should export our `GameQuery` interface in the `App` component.
+- Next thing is we have to change the props in our `GameGrid` to `gameQuery` of type `gameQuery`:
+
+```
+// Same import as before
+import { GameQuery } from "../App";
+
+interface Props {
+  gameQuery: GameQuery;
+}
+
+const GameGrid = ({ gameQuery }: Props) => {
+  const { data, error, isLoading } = useGames(gameQuery);
+  const skeletons = [1, 2, 3, 4, 5, 6];
+
+  return (
+    <>
+      // Same logic as before
+    </>
+  );
+};
+
+export default GameGrid;
+```
+
+- Now we have to modify our `useGames` hook:
+
+```
+const useGames = (gameQuery: GameQuery) =>
+  useData<Game>(
+    "/games",
+    {
+      params: {
+        genres: gameQuery.genre?.id,
+        platforms: gameQuery.platform?.id
+      }
+    },
+    [gameQuery]
+  );
+```
+
+- But with this implementation we have a tiny issue with our `App` component on the `GameGrid` part, because we have changed the props of `GameGrid` we no longer have any `selectedPlatform` or `selectedGenre` properties anymore, so in the `GameGrid` part we should set a new type to it:
+
+```
+<GridItem area="main">
+  <PlatformSelector
+    selectedPlatform={gameQuery.platform}
+    onSelectPlatform={(platform) =>
+      setGameQuery({ ...gameQuery, platform })
+    }
+  />
+  <GameGrid gameQuery={gameQuery} />
+</GridItem>
+```
+
+-> Testing it out on selecting genre and platform:
+![image](https://gist.github.com/user-attachments/assets/a15cc5a3-b52e-4982-a5e4-6ef8be7733c5)
