@@ -2021,3 +2021,168 @@ export default usePlatforms;
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/d11ad219-3f88-4048-b680-3f7ee477090c)
+
+### Filtering the Games by Platform:
+
+- Implementing filtering by platform using the same approach as before.
+- In our `App` component we will declare a new `useState` variable for keeping track of the `selectedPlatform`, when the platform changes we pass the `selectedPlatform` to the `GameGrid` for filtering:
+
+  - Declaring a new `useState` variable:
+
+  ```
+  const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null);
+  ```
+
+  - Now we go to our `PlatformSelector` and notify our `App` component when the user select a platform. First let's create a props:
+
+  ```
+  interface Props {
+    onSelectPlatform: (platform: Platform) => void;
+  }
+
+  const PlatformSelector = ({ onSelectPlatform }: Props) => {
+    const { data, error } = usePlatforms();
+
+    if (error) return null;
+    return (
+      <Menu>
+        // same as before
+      </Menu>
+    );
+  };
+  ```
+
+  - For handling selection: On the part where we handle `MenuItem`, we handle an `onClick` event and set it to a function then call the `onSelectPlatform` finally we pass the current platform that we are rendering:
+
+  ```
+  interface Props {
+    onSelectPlatform: (platform: Platform) => void;
+  }
+
+  const PlatformSelector = ({ onSelectPlatform }: Props) => {
+    const { data, error } = usePlatforms();
+
+    if (error) return null;
+    return (
+      <Menu>
+        <MenuButton as={Button} rightIcon={<BsChevronDown />}>
+          Platforms
+        </MenuButton>
+        <MenuList>
+          {data.map((platform) => (
+            <MenuItem onClick={() => onSelectPlatform(platform)} key={platform.id}>
+              {platform.name}
+            </MenuItem>
+          ))}
+        </MenuList>
+      </Menu>
+    );
+  };
+  ```
+
+  - Now we can go back to our `App` component and set the `onSelectPlatform`:
+
+  ```
+  <GridItem area="main">
+    <PlatformSelector onSelectPlatform={(platform) => setSelectedPlatform(platform)} />
+    <GameGrid selectedGenre={selectedGenre} />
+  </GridItem>
+  ```
+
+  ![image](https://gist.github.com/user-attachments/assets/0cc8e91f-9563-4e83-a1df-5a33d9f65526)
+  -> The implementation is working perfectly that's why our `App` component show the 2nd `useState` hook and declare what was selected
+
+- Because the implementation is working we can now pass it on our `GameGrid`:
+
+  - `App` components:
+
+  ```
+  <GameGrid
+    selectedPlatform={selectedPlatform}
+    selectedGenre={selectedGenre}
+  />
+  ```
+
+  - Adding a new properties to the `GameGrid` interface, then we pass it onto our `useGames` hook:
+
+  ```
+  interface Props {
+    selectedGenre: Genre | null;
+    selectedPlatform: Platform | null;
+  }
+
+  const GameGrid = ({ selectedGenre, selectedPlatform }: Props) => {
+    const { data, error, isLoading } = useGames(selectedGenre, selectedPlatform);
+    const skeletons = [1, 2, 3, 4, 5, 6];
+
+    return (
+      <>
+        // Same as before
+      </>
+    );
+  };
+
+  export default GameGrid;
+  ```
+
+  - Now we had to pass the `selectedPlatform` as a parameter in our `useGames` hook, and then we pass it to the api to the `params` object. Finally, we also need to add it as an dependencies so later on when it changes our `useEffect` re-fetch the data:
+
+  ```
+  const useGames = (
+    selectedGenre: Genre | null,
+    selectedPlatform: Platform | null
+  ) =>
+    useData<Game>(
+      "/games",
+      {
+        params: {
+          genres: selectedGenre?.id,
+          platforms: selectedPlatform?.id
+        }
+      },
+      [selectedGenre?.id, selectedPlatform?.id]
+    );
+  ```
+
+- Final step is to test out our components:
+
+  - Trying out Xbox platforms:
+    ![image](https://gist.github.com/user-attachments/assets/1b6c508c-7511-4a66-be5f-4937be257bbf)
+
+  * It's working good, but it's not clear what platforms is selected because our platform label are yet to be rendered dynamically, so the final improvement we need to make is to render the platfrom label dynamically.
+  * Back to our `App` component we should add the `selectedPlatform` to the `PlatformSelector` component:
+
+  ```
+  <PlatformSelector
+    selectedPlatform={selectedPlatform}
+    onSelectPlatform={(platform) => setSelectedPlatform(platform)}
+  />
+  ```
+
+  - We also need to add the props, and then instead of rendering plain text `platform` in our `MenuButton`, we're going to render an expression like `selectedPlatform?.name || 'Platforms'`:
+
+  ```
+  <Menu>
+    <MenuButton as={Button} rightIcon={<BsChevronDown />}>
+      {selectedPlatform?.name || "Platforms"}
+    </MenuButton>
+    <MenuList>
+      {data.map((platform) => (
+        <MenuItem
+          onClick={() => onSelectPlatform(platform)}
+          key={platform.id}
+        >
+          {platform.name}
+        </MenuItem>
+      ))}
+    </MenuList>
+  </Menu>
+  ```
+
+  - Filtering `selectedPlatform`:
+
+  ![image](https://gist.github.com/user-attachments/assets/061afb04-e791-4456-ae1d-b24d030b779b)
+
+  - Non platform select render `'Platform'`:
+
+  ![image](https://gist.github.com/user-attachments/assets/25f65811-4a2b-48ad-9e6e-c16dce3c34d1)
