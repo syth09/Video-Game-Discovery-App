@@ -2801,3 +2801,95 @@ const useGames = (gameQuery: GameQuery) =>
 
 ![image](https://gist.github.com/user-attachments/assets/db622d08-50d3-43ea-984d-5c2ea423ae65)
 ![image](https://gist.github.com/user-attachments/assets/36238bb5-47ee-4170-a2de-993386707a15)
+
+### Adding a Dynamic Heading:
+
+- Adding a Dynamic Heading that changes base on the current filter (e.g: user select adventure it show adventure, same with action, so on and so forth, also works with filtering the platform as well).
+- First let's create a new component call `GameHeading` and return `Heading` component from chakra and have it render as an `h1` element:
+
+```
+import { Heading } from "@chakra-ui/react";
+
+const GameHeading = () => {
+  return <Heading as="h1"></Heading>;
+};
+
+export default GameHeading;
+```
+
+- To render the heading dynamically, we should receive the `GameQuery` as a props in this component:
+
+```
+interface Props {
+  gameQuery: GameQuery;
+}
+
+const GameHeading = ({ gameQuery }: Props) => {
+  // Same as before
+};
+```
+
+- Initially, we want to render the label as `Games`. If the user select genre like `Action` we render `Action Game, if the use select a platform like `Xbox`we should render`Xbox Games`, finally if the user select both genre and platform we render both of them starting with the platform then genre and then the `Games`like this`XBox Action Games`.
+- To implement this first we should declare a variable or a constaint call `heading` and set it to a `Template Literals`. Here we can add a placeholder `${}` one for the platform and one for the genre:
+
+```
+  const heading = `${gameQuery.platform?.name} ${gameQuery.genre?.name} Games`;
+```
+
+- After that we simply render the `heading`:
+
+```
+const GameHeading = ({ gameQuery }: Props) => {
+  const heading = `${gameQuery.platform?.name} ${gameQuery.genre?.name} Games`;
+
+  return <Heading as="h1">{heading}</Heading>;
+};
+```
+
+- Now, let's go to our `App` component and add our `GameHeading` just before our `HStack` that wrap both the platform filtering and the sorting box then we should pass our `gameQuery`:
+
+```
+<GridItem area="main">
+  <GameHeading gameQuery={gameQuery} />
+  <HStack spacing={5} paddingLeft={2} marginBottom={5}>
+    // Same as before
+  </HStack>
+  <GameGrid gameQuery={gameQuery} />
+</GridItem>
+```
+
+![image](https://gist.github.com/user-attachments/assets/427f491a-05e2-415e-9725-b95445ef1dc4)
+
+- Initially we got `undefined` but this is very easy to fix, so back to our `GameHeading` and put up a condition that if we had a platform(or genre) we should render it if not we shall render an empty string `""`:
+
+```
+  const heading = `${gameQuery.platform?.name || ""} ${gameQuery.genre?.name || ""} Games`;
+```
+
+![image](https://gist.github.com/user-attachments/assets/3d551913-131d-4e9a-816b-453fcd6b2a9f)
+
+- Testing it out:
+
+  - Genre:
+    ![image](https://gist.github.com/user-attachments/assets/f04d76c7-84e2-40b1-8baa-6ca38b88c7a2)
+    ![image](https://gist.github.com/user-attachments/assets/427117f6-fc7a-47c4-b020-aa58afc40497)
+
+  - Platform:
+    ![image](https://gist.github.com/user-attachments/assets/3fd6fadd-8c8c-41dc-886d-c4a705b9d930)
+    ![image](https://gist.github.com/user-attachments/assets/0ee8207a-612d-47d9-b352-faf37e40925f)
+
+  - Both:
+    ![image](https://gist.github.com/user-attachments/assets/aa2fb7c4-a318-4cfb-a52b-1549754c7664)
+    ![image](https://gist.github.com/user-attachments/assets/a0d0febc-f379-469c-ab55-cce843b734fb)
+
+- Improved the UX by adding some spacing and altering the font to the heading:
+
+```
+  return (
+    <Heading as="h1" marginY={5} fontSize="5xl">
+      {heading}
+    </Heading>
+  );
+```
+
+![image](https://gist.github.com/user-attachments/assets/de4efd44-2238-40fb-9879-d4990820d0d2)
