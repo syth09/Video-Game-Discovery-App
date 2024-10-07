@@ -2311,3 +2311,228 @@ const useGames = (gameQuery: GameQuery) =>
 
 -> Testing it out on selecting genre and platform:
 ![image](https://gist.github.com/user-attachments/assets/a15cc5a3-b52e-4982-a5e4-6ef8be7733c5)
+
+### Building Sort Selector:
+
+- Adding a dropdown list for sorting our game.
+- Creating a new component call `SortSelector` then we simply copy the return statement from our `PlatformSelector` since they are identical component, and we want to render them statically:
+
+```
+import { Button, Menu, MenuButton, MenuItem, MenuList } from "@chakra-ui/react";
+import { BsChevronDown } from "react-icons/bs";
+
+const SortSelector = () => {
+  return (
+    <Menu>
+      <MenuButton as={Button} rightIcon={<BsChevronDown />}>
+        Order by: Relevance
+      </MenuButton>
+      <MenuList>
+        <MenuItem>Relevance</MenuItem>
+        <MenuItem>Date added</MenuItem>
+        <MenuItem>Name</MenuItem>
+        <MenuItem>Release date</MenuItem>
+        <MenuItem>Popularity</MenuItem>
+        <MenuItem>Average rating</MenuItem>
+      </MenuList>
+    </Menu>
+  );
+};
+
+export default SortSelector;
+```
+
+- Then we will test out the implementation on our `App` component:
+
+```
+<GridItem area="main">
+  <PlatformSelector
+    selectedPlatform={gameQuery.platform}
+    onSelectPlatform={(platform) =>
+      setGameQuery({ ...gameQuery, platform })
+    }
+  />
+  <SortSelector />
+  <GameGrid gameQuery={gameQuery} />
+</GridItem>
+```
+
+![image](https://gist.github.com/user-attachments/assets/55362cac-d032-4ac4-9cc4-13120ad845ef)
+
+- Warping both the selector in a horizontal stack `HStack` to implement spacing style:
+
+```
+<HStack spacing={5} paddingLeft={2} marginBottom={5}>
+  <PlatformSelector
+    selectedPlatform={gameQuery.platform}
+    onSelectPlatform={(platform) =>
+      setGameQuery({ ...gameQuery, platform })
+    }
+  />
+  <SortSelector />
+</HStack>
+```
+
+![image](https://gist.github.com/user-attachments/assets/68e85adb-0c34-48e9-b582-9eecd844274e)
+
+### Sorting Games:
+
+- Using the query parameter `ordering` in the rawg api to sorting data.
+- Back to out `SortSelector` component, now we should store all the `sortOrder` item in an array then we map each item in the array to a `MenuItem`:
+
+```
+const SortSelector = () => {
+  const sortOrders = [
+    { value: "", label: "Relevance" },
+    { value: "-added", label: "Date added" },
+    { value: "name", label: "Name" },
+    { value: "-release", label: "Release date" },
+    { value: "-metacritic", label: "Popularity" },
+    { value: "-rating", label: "Average rating" }
+  ];
+
+  return (
+    <Menu>
+      <MenuButton as={Button} rightIcon={<BsChevronDown />}>
+        Order by: Relevance
+      </MenuButton>
+      <MenuList>
+        {sortOrders.map((order) => (
+          <MenuItem key={order.value} value={order.value}>
+            {order.label}
+          </MenuItem>
+        ))}
+      </MenuList>
+    </Menu>
+  );
+};
+```
+
+- And for each `MenuItem` we need to handle the click event, in the click event we should notify the `App` component and to do that we should create a props as `onSelectSortOrder`, this is a function that take `sortOrder: string` and return `void`. After we add the props to the parameter we should go ahead and pass a function to the `onClick` event then call `onSelectSortOrder` then pass the `order.value`:
+
+```
+interface Props {
+  onSelectSortOrder: (sortOrder: string) => void;
+}
+
+const SortSelector = ({ onSelectSortOrder }: Props) => {
+  const sortOrders = [
+    // Same as before
+  ];
+
+  return (
+    <Menu>
+      <MenuButton as={Button} rightIcon={<BsChevronDown />}>
+        Order by: Relevance
+      </MenuButton>
+      <MenuList>
+        {sortOrders.map((order) => (
+          <MenuItem
+            onClick={() => onSelectSortOrder(order.value)}
+            key={order.value} value={order.value}
+          >
+            {order.label}
+          </MenuItem>
+        ))}
+      </MenuList>
+    </Menu>
+  );
+};
+```
+
+- Next we head back to our `App` component and add a new query to our `GameQuery` call `sortOrder` of type `string`:
+
+```
+export interface GameQuery {
+  genre: Genre | null;
+  platform: Platform | null;
+  sortOrder: string;
+}
+```
+
+- Then in our `SortSelector` part of the `App` component, we set the `onSelectSortOrder` to a function that take the new `sortOrder` then we call `setGameQuery` pass it a new object by spreading the `gameQuery` then we add the new `sortOrder` :
+
+```
+export interface GameQuery {
+  genre: Genre | null;
+  platform: Platform | null;
+  sortOrder: string;
+}
+
+function App() {
+  const [gameQuery, setGameQuery] = useState<GameQuery>({} as GameQuery);
+
+  return (
+    <Grid
+      templateAreas={{
+        base: `"nav" " main"`,
+        lg: `"nav nav" "aside main"`
+      }}
+      templateColumns={{}}
+    >
+      // Same implementation as before
+      <GridItem area="main">
+        <HStack spacing={5} paddingLeft={2} marginBottom={5}>
+          // Same platform component
+          <SortSelector
+            sortOrder={gameQuery.sortOrder}
+            onSelectSortOrder={(sortOrder) =>
+              setGameQuery({ ...gameQuery, sortOrder })
+            }
+          />
+        </HStack>
+        <GameGrid gameQuery={gameQuery} />
+      </GridItem>
+    </Grid>
+  );
+}
+```
+
+- After making sure the our `SortSelector` cause the `App` component to re-render, in the next render we going to pass the new `GameQuery` object to our `GameGrid` by altering our `useGames` hook:
+
+```
+const useGames = (gameQuery: GameQuery) =>
+  useData<Game>(
+    "/games",
+    {
+      params: {
+        genres: gameQuery.genre?.id,
+        platforms: gameQuery.platform?.id,
+        ordering: gameQuery.sortOrder
+      }
+    },
+    [gameQuery]
+  );
+```
+
+- Now our application could sort the games by what the user choose, but our `App` broke because some of the game do not have any image:
+  ![image](https://gist.github.com/user-attachments/assets/d6ebcde4-3ec1-4210-ad01-b2cca33f9bd3)
+
+- Temporary fixation for it is we should handle the case with `null` URL in the function. To do that first we check if falsy or not if so then we going to return an empty `string`:
+
+```
+const getCroppedImageURL = (url: string) => {
+  if (!url) return '';
+  const target = "media/";
+  const index = url.indexOf(target) + target.length;
+  return url.slice(0, index) + 'crop/600/400/' + url.slice(index);
+};
+
+export default getCroppedImageURL;
+```
+
+- Now we can sorting the games properly:
+
+  - Sorting by Name:
+
+  ![image](https://gist.github.com/user-attachments/assets/6b72d56e-e6e9-466b-8176-ac742a1ea290)
+
+  - Sorting by Date added:
+
+  ![image](https://gist.github.com/user-attachments/assets/60c4ea2f-2875-4977-a59f-6098b538daaf)
+
+  - Sorting + filtering by platforms:
+
+  ![image](https://gist.github.com/user-attachments/assets/4992488d-0c5e-4b29-8d08-ada2034503b5)
+
+  ![image](https://gist.github.com/user-attachments/assets/3da4dc73-9b99-4c79-8912-664932d0b42c)
