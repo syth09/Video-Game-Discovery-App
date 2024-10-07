@@ -2569,7 +2569,9 @@ const getCroppedImageURL = (url: string) => {
 ![image](https://gist.github.com/user-attachments/assets/d815951d-b5c1-470e-9138-7f16e618d19d)
 
 ### Building a Search Input:
+
 - To add an input box to at the `navbar` to search for the game we create a new component and instead of returning a `div` we return an `Input`:
+
 ```
 import { Input } from "@chakra-ui/react";
 
@@ -2583,6 +2585,7 @@ export default SearchInput;
 ```
 
 - Now we add it to our `NavBar`:
+
 ```
 const NavBar = () => {
   return (
@@ -2596,28 +2599,32 @@ const NavBar = () => {
 
 export default NavBar;
 ```
+
 ![image](https://gist.github.com/user-attachments/assets/8100d59e-ecaa-4035-a040-720e70498232)
-  + Our label beside the color switch is getting wrap up and we need to adjust it, and we simply set the `Text` component inside our `ColorModeSwitch` to `whiteSpace='nowrap'`:
-  ```
-  const ColorModeSwitch = () => {
-    const { toggleColorMode, colorMode } = useColorMode();
 
-    return (
-      <HStack>
-        <Switch
-          colorScheme="green"
-          isChecked={colorMode === "dark"}
-          onChange={toggleColorMode}
-        />
-        <Text whiteSpace="nowrap">Dark mode</Text>
-      </HStack>
-    );
-  };
-  ```
-  ![image](https://gist.github.com/user-attachments/assets/f3f1995f-4808-481f-83ab-56fa858d0b95)
+- Our label beside the color switch is getting wrap up and we need to adjust it, and we simply set the `Text` component inside our `ColorModeSwitch` to `whiteSpace='nowrap'`:
 
-  
+```
+const ColorModeSwitch = () => {
+  const { toggleColorMode, colorMode } = useColorMode();
+
+  return (
+    <HStack>
+      <Switch
+        colorScheme="green"
+        isChecked={colorMode === "dark"}
+        onChange={toggleColorMode}
+      />
+      <Text whiteSpace="nowrap">Dark mode</Text>
+    </HStack>
+  );
+};
+```
+
+![image](https://gist.github.com/user-attachments/assets/f3f1995f-4808-481f-83ab-56fa858d0b95)
+
 - Now we should add an icon to our search input:
+
 ```
 const SearchInput = () => {
   return (
@@ -2628,11 +2635,169 @@ const SearchInput = () => {
   );
 };
 ```
+
 ![image](https://gist.github.com/user-attachments/assets/ee528fba-3f05-48b0-b4cf-5a174e1e3ee2)
 
 - Next thing is to make sure this implementation look good on mobile devices:
-  + Mobile:
-  ![image](https://gist.github.com/user-attachments/assets/d81a5dd1-f883-4679-aa1d-96fd554ee955)
 
-  + Tablet:
-  ![image](https://gist.github.com/user-attachments/assets/558ec868-078e-4ae8-bc7d-66e167dbe098)
+  - Mobile:
+    ![image](https://gist.github.com/user-attachments/assets/d81a5dd1-f883-4679-aa1d-96fd554ee955)
+
+  - Tablet:
+    ![image](https://gist.github.com/user-attachments/assets/558ec868-078e-4ae8-bc7d-66e167dbe098)
+
+### Searching Games:
+
+- Using the same appoarch as before now we need to make it so when the user's input a value into our `SearchInput` then hit `Enter`, this component will notify the `App` component then the `App` component will take the search text and stored in our query object and then pass it down to the `GameGrid`.
+- First we should warp everything in our `SearchInput` inside a `form` element:
+
+```
+const SearchInput = () => {
+  return (
+    <form>
+      <InputGroup>
+        <InputLeftElement children={<BsSearch />} />
+        <Input
+          borderRadius={20}
+          placeholder="Search games..."
+          variant="filled"
+        />
+      </InputGroup>
+    </form>
+  );
+};
+```
+
+- As we wrap our `Input` in the new `form` it cause a little visual issue, because the search input is no longer taking up 100% width of the `Nav` component anymore
+  ![image](https://gist.github.com/user-attachments/assets/eac2e578-0b6b-41a6-ace8-801d27ae9cf2)
+
+- To solve this problem we can add a rule to our global style sheet, so let's go to `index.css` and give form a width of 100%:
+
+```
+form {
+  width: 100%;
+}
+```
+
+![image](https://gist.github.com/user-attachments/assets/5d8b52c7-b3d5-4b9f-b3aa-c6bf9f33ef9b)
+
+- With everything back in order we can now go over to handle the `onSubmit` event. In the `onSubmit` we pass a function that take an `event` and in this function first we call `event.preventDefault();` to prevent the `form` from being posted to the server:
+
+```
+const SearchInput = () => {
+  return (
+    <form onSubmit={(event) => {
+        event.preventDefault();
+    }}>
+      // Same as before
+    </form>
+  );
+};
+```
+
+- Next up, we need to get access to the value inside the `Input` field, here we can use the `useRef` hook or maintain the state by using the `useState` hook. Because we have a simple `form` with a single `Input` field it's easier to use the `useRef` hook.
+- So let's implement the `useRef` hook and we going to reference the `HTMLInputElement` and then initialize it to `null` just liked always and then get a `ref` object:
+
+```
+  const ref = useRef<HTMLInputElement>(null);
+```
+
+- Now that we need to associate the `ref` object with our `Input` component and then when we submitting the `form` we check it out and print it on the console for now to test out the application:
+
+```
+const SearchInput = () => {
+  const ref = useRef<HTMLInputElement>(null);
+
+  return (
+    <form onSubmit={(event) => {
+      event.preventDefault();
+      if (ref.current) console.log(ref.current.value);
+    }}>
+      <InputGroup>
+        // ...
+        <Input
+          ref={ref}
+          // Same as before
+        />
+      </InputGroup>
+    </form>
+  );
+};
+```
+
+![image](https://gist.github.com/user-attachments/assets/87b0d8b5-68ec-444c-91f3-60c5b67e784f)
+
+- With our implementation working perfectly, we should go ahead and pass it to our `App` component:
+
+  - Before adding it to our `App` component we need to add a new props to our `SearchInput` component. Add a props call `onSearch` which is going to be a function that take `searchText` as a `string` and return `void`, next we add it to our parameter and finally instead of logging the `ref.current.value` on the console we pass it to `onSearch`:
+
+  ```
+  interface Props {
+    onSearch: (searchText: string) => void;
+  }
+
+  const SearchInput = ({ onSearch }: Props) => {
+    const ref = useRef<HTMLInputElement>(null);
+
+    return (
+      <form
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (ref.current) onSearch(ref.current.value);
+        }}
+      >
+        <InputGroup>
+          // Same as before
+        </InputGroup>
+      </form>
+    );
+  };
+  ```
+
+  - Now we should go to our `App` component and implement it. First, we should add our `searchText` to our `GameQuery`. Since the `SearchInput` is not a direct child of our `App` component, but the `NavBar` itself, so we should went over to our `NavBar` component and add the same props to it then we simply set the `onSearch` to our `SearchInput`:
+
+  ```
+  interface Props {
+    onSearch: (searchText: string) => void;
+  }
+
+  const NavBar = ({ onSearch }: Props) => {
+    return (
+      <HStack padding="10px">
+        <Image src={logo} boxSize={"60px"} />
+        <SearchInput onSearch={onSearch} />
+        <ColorModeSwitch />
+      </HStack>
+    );
+  };
+  ```
+
+  - After that we set the `onSearch` to our `NavBar` component on our `App` component. We set it to a function that take `searchText` then we call `setGameQuery` to a new object by spreading the `gameQuery` and take the `searchText`:
+
+  ```
+  <GridItem area="nav">
+    <NavBar onSearch={(searchText) => setGameQuery({...gameQuery, searchText})}/>
+  </GridItem>
+  ```
+
+- To confirm that our implementation of the hook works, we open up dev tools and inspect our `App` component:
+  ![image](https://gist.github.com/user-attachments/assets/fa6e3c85-b5ae-4d44-a0d7-ad85f0c632c5)
+
+- Final step is to pass it to our Backend. Now go to our `useGames` hook and simply add a new parameter call `search` and set it to `gameQuery.searchText`:
+
+```
+const useGames = (gameQuery: GameQuery) =>
+  useData<Game>(
+    "/games",
+    {
+      params: {
+        // Same as before
+        search: gameQuery.searchText
+      }
+    },
+    [gameQuery]
+  );
+```
+
+![image](https://gist.github.com/user-attachments/assets/db622d08-50d3-43ea-984d-5c2ea423ae65)
+![image](https://gist.github.com/user-attachments/assets/36238bb5-47ee-4170-a2de-993386707a15)
