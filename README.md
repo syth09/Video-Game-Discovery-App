@@ -2536,3 +2536,34 @@ export default getCroppedImageURL;
   ![image](https://gist.github.com/user-attachments/assets/4992488d-0c5e-4b29-8d08-ada2034503b5)
 
   ![image](https://gist.github.com/user-attachments/assets/3da4dc73-9b99-4c79-8912-664932d0b42c)
+
+### Handling Games without an Image:
+
+- To handle games without an image we'll use a default `no-image-placeholder.webp` image as a placeholder.
+- Next up, we should go to the `image-url.ts` component and import the new image like a module on the top of the component:
+
+```
+import noImage from '../assets/no-image-placeholder.webp'
+
+const getCroppedImageURL = (url: string) => {
+  if (!url) return '';
+  const target = "media/";
+  const index = url.indexOf(target) + target.length;
+  return url.slice(0, index) + 'crop/600/400/' + url.slice(index);
+};
+
+export default getCroppedImageURL;
+```
+
+- Now instead of returning an empty string we can return the `noImage`:
+
+```
+const getCroppedImageURL = (url: string) => {
+  if (!url) return noImage;
+  const target = "media/";
+  const index = url.indexOf(target) + target.length;
+  return url.slice(0, index) + 'crop/600/400/' + url.slice(index);
+};
+```
+
+![image](https://gist.github.com/user-attachments/assets/d815951d-b5c1-470e-9138-7f16e618d19d)
