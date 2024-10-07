@@ -2567,3 +2567,72 @@ const getCroppedImageURL = (url: string) => {
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/d815951d-b5c1-470e-9138-7f16e618d19d)
+
+### Building a Search Input:
+- To add an input box to at the `navbar` to search for the game we create a new component and instead of returning a `div` we return an `Input`:
+```
+import { Input } from "@chakra-ui/react";
+
+const SearchInput = () => {
+  return (
+    <Input borderRadius={20} placeholder="Search games..." variant="filled" />
+  );
+};
+
+export default SearchInput;
+```
+
+- Now we add it to our `NavBar`:
+```
+const NavBar = () => {
+  return (
+    <HStack justifyContent="space-between" padding="10px">
+      <Image src={logo} boxSize={"60px"} />
+      <SearchInput />
+      <ColorModeSwitch />
+    </HStack>
+  );
+};
+
+export default NavBar;
+```
+![image](https://gist.github.com/user-attachments/assets/8100d59e-ecaa-4035-a040-720e70498232)
+  + Our label beside the color switch is getting wrap up and we need to adjust it, and we simply set the `Text` component inside our `ColorModeSwitch` to `whiteSpace='nowrap'`:
+  ```
+  const ColorModeSwitch = () => {
+    const { toggleColorMode, colorMode } = useColorMode();
+
+    return (
+      <HStack>
+        <Switch
+          colorScheme="green"
+          isChecked={colorMode === "dark"}
+          onChange={toggleColorMode}
+        />
+        <Text whiteSpace="nowrap">Dark mode</Text>
+      </HStack>
+    );
+  };
+  ```
+  ![image](https://gist.github.com/user-attachments/assets/f3f1995f-4808-481f-83ab-56fa858d0b95)
+
+  
+- Now we should add an icon to our search input:
+```
+const SearchInput = () => {
+  return (
+    <InputGroup>
+      <InputLeftElement children={<BsSearch />} />
+      <Input borderRadius={20} placeholder="Search games..." variant="filled" />
+    </InputGroup>
+  );
+};
+```
+![image](https://gist.github.com/user-attachments/assets/ee528fba-3f05-48b0-b4cf-5a174e1e3ee2)
+
+- Next thing is to make sure this implementation look good on mobile devices:
+  + Mobile:
+  ![image](https://gist.github.com/user-attachments/assets/d81a5dd1-f883-4679-aa1d-96fd554ee955)
+
+  + Tablet:
+  ![image](https://gist.github.com/user-attachments/assets/558ec868-078e-4ae8-bc7d-66e167dbe098)
