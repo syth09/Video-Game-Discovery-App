@@ -3063,3 +3063,195 @@ const Emoji = ({ rating }: Props) => {
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/4ab188e9-8bdc-45ab-9311-ef09fe92c10f)
+
+### Shipping Static Data:
+
+- In our current implementation we show a spinner while we fetch in spinner and skeleton while we fetch the game basically speaking we are dynamically loading 2 different part of the page and showing loading indicator. Now while this is not unnecessary a bad thing, over using this technique can negatively impact the UX it make the user's eyes dart around the page.
+- There is a cool idea to improve the page, we can ship the list of genre with our application since the list of genre hardly ever changes we cna treat it as static data and include it with our app. That way we don't need to make an extra request to our backend and the data will be available right away, no need to wait nor show a spinner.
+- First let's open up dev tool, on the Network tab we can copy the value of our genre results that we get from the server. Now back to our project and add a new folder inside our `src` folder name it `data`, then add a new file call `genre.ts`.
+- Then in the `genre.ts` file we export default our copy value:
+
+```
+export default [
+  {
+    "id": 4,
+    "name": "Action",
+    "slug": "action",
+    "games_count": 182685,
+    "image_background": "https://media.rawg.io/media/games/b7b/b7b8381707152afc7d91f5d95de70e39.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 3,
+    "name": "Adventure",
+    "slug": "adventure",
+    "games_count": 142410,
+    "image_background": "https://media.rawg.io/media/games/b6b/b6b20bfc4b34e312dbc8aac53c95a348.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 5,
+    "name": "RPG",
+    "slug": "role-playing-games-rpg",
+    "games_count": 57389,
+    "image_background": "https://media.rawg.io/media/games/530/5302dd22a190e664531236ca724e8726.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 10,
+    "name": "Strategy",
+    "slug": "strategy",
+    "games_count": 57630,
+    "image_background": "https://media.rawg.io/media/games/c22/c22d804ac753c72f2617b3708a625dec.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 2,
+    "name": "Shooter",
+    "slug": "shooter",
+    "games_count": 59520,
+    "image_background": "https://media.rawg.io/media/games/5c0/5c0dd63002cb23f804aab327d40ef119.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 40,
+    "name": "Casual",
+    "slug": "casual",
+    "games_count": 56540,
+    "image_background": "https://media.rawg.io/media/games/e31/e315213a5cb21645df8db3e5191e530c.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 14,
+    "name": "Simulation",
+    "slug": "simulation",
+    "games_count": 71169,
+    "image_background": "https://media.rawg.io/media/games/c22/c22d804ac753c72f2617b3708a625dec.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 7,
+    "name": "Puzzle",
+    "slug": "puzzle",
+    "games_count": 97311,
+    "image_background": "https://media.rawg.io/media/games/948/948fe7f00b6cba8472f5ecd07a455077.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 11,
+    "name": "Arcade",
+    "slug": "arcade",
+    "games_count": 22659,
+    "image_background": "https://media.rawg.io/media/games/370/3703c683968a54f09630dcf03366ea35.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 83,
+    "name": "Platformer",
+    "slug": "platformer",
+    "games_count": 100810,
+    "image_background": "https://media.rawg.io/media/games/9cc/9cc11e2e81403186c7fa9c00c143d6e4.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 1,
+    "name": "Racing",
+    "slug": "racing",
+    "games_count": 24991,
+    "image_background": "https://media.rawg.io/media/games/82e/82eeea65ebb047cc7f366faf2fb062b6.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 59,
+    "name": "Massively Multiplayer",
+    "slug": "massively-multiplayer",
+    "games_count": 3792,
+    "image_background": "https://media.rawg.io/media/games/d07/d0790809a13027251b6d0f4dc7538c58.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 15,
+    "name": "Sports",
+    "slug": "sports",
+    "games_count": 21755,
+    "image_background": "https://media.rawg.io/media/games/b59/b59560a7277b16b53e4786b4abe45baa.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 6,
+    "name": "Fighting",
+    "slug": "fighting",
+    "games_count": 11757,
+    "image_background": "https://media.rawg.io/media/games/021/021c4e21a1824d2526f925eff6324653.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 19,
+    "name": "Family",
+    "slug": "family",
+    "games_count": 5404,
+    "image_background": "https://media.rawg.io/media/games/3c1/3c139f67a73f0bf5ce0d8f2abf83c0d0.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 28,
+    "name": "Board Games",
+    "slug": "board-games",
+    "games_count": 8382,
+    "image_background": "https://media.rawg.io/media/screenshots/ce7/ce7d6b1018d907d7a1e2addd87079c95.jpeg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 34,
+    "name": "Educational",
+    "slug": "educational",
+    "games_count": 15684,
+    "image_background": "https://media.rawg.io/media/screenshots/f24/f24122a8e3d30ec3e99472e3e826d0cb.jpg",
+    "games": [
+      // ...
+    ]
+  },
+  {
+    "id": 17,
+    "name": "Card",
+    "slug": "card",
+    "games_count": 4533,
+    "image_background": "https://media.rawg.io/media/screenshots/ccf/ccf34a116ebff82c41cbe60aaf24a5df.jpeg",
+    "games": [
+      // ...
+    ]
+  }
+]
+```
