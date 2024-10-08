@@ -2941,3 +2941,125 @@ const GameGrid = ({ gameQuery }: Props) => {
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/8bebaa18-e25e-484d-b383-ed7749f61189)
+
+### Adding Emojis:
+
+- Adding some emoji for our `GameCard`. First, we go to our `Game` interface locate in our `useGames` hook and add a new properties call `rating_top` of type `number`:
+
+```
+export interface Game {
+  // Same as before
+  rating_top: number;
+}
+```
+
+-> in the rawg documentation api we also had this properties call `rating` and also is a `number` type but the different between the `rating_top` and `rating` this that `rating` is a float number, but `rating_top` is a whole number (it's can only be 1, 2, 3, 4, 5).
+
+- Now we going to render different emoji base on the `rating_top`. Before that we should add 3 new image for the emoji:
+
+  - With the rating of 3 we should render a meh emoji:
+    ![meh](https://gist.github.com/user-attachments/assets/fc060b95-90d6-4f3b-b09f-059c27eae057)
+  - With the rating of 4 we should render a thumbs up emoji:
+    ![thumbs-up](https://gist.github.com/user-attachments/assets/8252b97a-521d-4d0b-bc92-9606bb932a54)
+  - With the rating of 5 we should render a bulls eye emoji:
+    ![bulls-eye](https://gist.github.com/user-attachments/assets/f60f71df-e19d-4457-9019-981d55a54e9f)
+
+- Next we going to add a new component call `Emoji.tsx`, then we should receive the `rating` of the game as a props:
+
+```
+interface Props {
+  rating: number;
+}
+
+const Emoji = ({ rating }: Props) => {
+  return <div>Emoji</div>;
+};
+
+export default Emoji;
+```
+
+- Now we should implement the different emoji for different rating by using a map object, but before we do that we should import all of our image on the top of the component:
+
+```
+import bullsEye from "../assets/bulls-eye.webp";
+import thumbsUp from "../assets/thumbs-up.webp";
+import meh from "../assets/meh.webp";
+
+interface Props {
+  rating: number;
+}
+
+const Emoji = ({ rating }: Props) => {
+  if (rating < 3) return null;
+
+  return <div>Emoji</div>;
+};
+
+export default Emoji;
+```
+
+- After that we should create a map object name `emojiMap`, in this object our key are number that represent the rating of a game:
+
+```
+  const emojiMap = {
+    3: { src: meh, alt: "meh" },
+    4: { src: thumbsUp, alt: "recommended" },
+    5: { src: bullsEye, alt: "exceptional" }
+  };
+```
+
+- Now instead of returning a `div` we should return an `Image` component, here we can set individual properties like `src` or `alt` but we can also render the value associated with the given key. We should add a braces then we spread the `emojiMap` of `rating, but before that we have to annotate the `emojiMap`itself by assignning a index signature to it to make it so that the`emojiMap`is notify to the React compiler that it can have any number of keys and the key are numbers, then we should map each key to an`ImageProps` object define in chakra:
+
+```
+const Emoji = ({ rating }: Props) => {
+  if (rating < 3) return null;
+
+  const emojiMap: { [key: number]: ImageProps } = {
+    3: { src: meh, alt: "meh" },
+    4: { src: thumbsUp, alt: "recommended" },
+    5: { src: bullsEye, alt: "exceptional" }
+  };
+
+  return <Image {...emojiMap[rating]} boxSize="25px" />;
+};
+```
+
+- Now let's add it to our `GameCard`:
+
+```
+const GameCard = ({ game }: GameCardProps) => {
+  return (
+    <Card>
+      <Image src={getCroppedImageURL(game.background_image)} />
+      <CardBody>
+        // Same as before
+        <Heading fontSize="2xl">
+          {game.name}
+          <Emoji rating={game.rating_top} />
+        </Heading>
+      </CardBody>
+    </Card>
+  );
+};
+```
+
+![image](https://gist.github.com/user-attachments/assets/e8420145-20c2-4fa6-91fc-41c652c3e1fa)
+![image](https://gist.github.com/user-attachments/assets/56cc21c6-1fb5-4ade-8e60-2191f99d0749)
+
+- Our component is working great, but currently the size of our thumbs up emoji is a little bit bigger than the bulls eye emoji. To prevent that we should render the emoji dynamically:
+
+```
+const Emoji = ({ rating }: Props) => {
+  if (rating < 3) return null;
+
+  const emojiMap: { [key: number]: ImageProps } = {
+    3: { src: meh, alt: "meh", boxSize: "25px" },
+    4: { src: thumbsUp, alt: "recommended", boxSize: "25px" },
+    5: { src: bullsEye, alt: "exceptional", boxSize: "35px" }
+  };
+
+  return <Image {...emojiMap[rating]} marginTop={1} />;
+};
+```
+
+![image](https://gist.github.com/user-attachments/assets/4ab188e9-8bdc-45ab-9311-ef09fe92c10f)
