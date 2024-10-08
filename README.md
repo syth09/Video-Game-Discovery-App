@@ -3328,3 +3328,25 @@ const theme = extendTheme({
   }
 });
 ```
+
+### Refactoring the GameGrid:
+
+- Declaring a new if statement for the error so we no longer need to wrap both the error and the `SimpleGrid` together inside a fragments:
+
+```
+const GameGrid = ({ gameQuery }: Props) => {
+  // Same `useState` variable as before
+
+  if (error) return <Text>{error}</Text>;
+
+  return (
+    <SimpleGrid
+      columns={{ sm: 1, md: 2, lg: 3, "2xl": 4 }}
+      padding="10px"
+      spacing={6}
+    >
+      // Same as before
+    </SimpleGrid>
+  );
+};
+```
