@@ -3350,3 +3350,9 @@ const GameGrid = ({ gameQuery }: Props) => {
   );
 };
 ```
+
+### Building for Production:
+
+- Before building for deploy the application we should build it locally to make sure it doesn't have any error because it's alway faster and easier to discover and fix these error locally rather than wait for it to deployment to finish.
+- To build our application we run the command `npm run build` in the terminal.
+- Or you can build by using the command palette using `Ctrl + Shift + P` to open up the command palette then search for `Tasks: Run Build Task` then press `Enter` to execute it, and then select the `npm: build`.
