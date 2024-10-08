@@ -3290,3 +3290,41 @@ export default useGenres;
 ```
 
 - Also we can implement this on our platform and so on.
+
+### Customizing the Chakra Theme:
+
+- Changing the whole color palette of the page using Smart Swatch to pick a shade for the whole palette
+  ![image](https://gist.github.com/user-attachments/assets/3866cfcc-ceca-4258-85c9-451bdad17e61)
+- With the new color palette, we should head over to our `theme.ts` component, on the line where we extend our theme we are going to add a new properties call `colors` which is an object:
+
+```
+const theme = extendTheme({
+  config,
+  colors: {
+
+  }
+});
+```
+
+- Inside the `colors` object we add `gray` which is another object, then inside it we add variant shade of gray that we create using Smart Swatch
+
+```
+
+const theme = extendTheme({
+  config,
+  colors: {
+    gray: {
+      50: '#f2f2f2',
+      100: '#d9d9d9',
+      200: '#bfbfbf',
+      300: '#a6a6a6',
+      400: '#8c8c8c',
+      500: '#737373',
+      600: '#595959',
+      700: '#404040',
+      800: '#262626',
+      900: '#0d0d0d'
+    }
+  }
+});
+```
