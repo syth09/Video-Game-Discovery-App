@@ -3255,3 +3255,38 @@ export default [
   }
 ]
 ```
+
+- Now we head over to our `useGenres` hooks and instead of using the `useData` hooks to fetch data from the server we should return an object with 3 properties (`data: null, isLoading: false, error: null`):
+
+```
+export interface Genre {
+  id: number;
+  name: string;
+  image_background: string;
+}
+
+const useGenres = () => ({ data: null, isLoading: false, error: null});
+
+export default useGenres;
+```
+
+-> The reason we should return an object with these properties is to minimize the impact of these change on the consumer of this hook.
+
+- E.g: The `GenreList` component is a consumer of the `useGenres` hook, it's expect to get an object with 3 properties:![image](https://gist.github.com/user-attachments/assets/843b2d55-8bc2-48d5-8ddc-acde834c9160)
+- We don't want the changes we apply in the `useGenres` hook to impact this component and other component that use the `useGenres` hook, that's why we are returning an object with 3 properties.
+
+* Next up we should set the `data` properties to the genre we have store in the genre module:
+
+```
+import genres from "../data/genres";
+
+export interface Genre {
+  // Same as before
+}
+
+const useGenres = () => ({ data: genres, isLoading: false, error: null});
+
+export default useGenres;
+```
+
+- Also we can implement this on our platform and so on.
