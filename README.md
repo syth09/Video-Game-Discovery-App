@@ -2893,3 +2893,51 @@ const GameHeading = ({ gameQuery }: Props) => {
 ```
 
 ![image](https://gist.github.com/user-attachments/assets/de4efd44-2238-40fb-9879-d4990820d0d2)
+
+### Cleaning up the Game Cards:
+
+- First things first, let's move the icon and badge above the game name. We simply head over to our `GameCard` and move the `Heading` to after the `HStack` that contain the icon and score badge, and then add some spacing to our `HStack` and `Heading`:
+
+```
+const GameCard = ({ game }: GameCardProps) => {
+  return (
+    <Card>
+      <Image src={getCroppedImageURL(game.background_image)} />
+      <CardBody>
+        <HStack justifyContent="space-between" marginBottom={3}>
+          <PlatformIconList
+            platforms={game.parent_platforms.map((p) => p.platform)}
+          />
+          <CriticScore score={game.metacritic} />
+        </HStack>
+        <Heading fontSize="2xl">{game.name}</Heading>
+      </CardBody>
+    </Card>
+  );
+};
+```
+
+![image](https://gist.github.com/user-attachments/assets/771e5b9a-d9ef-4d79-a7b2-b2a223d17cc8)
+
+- The next thing we can improve is the spacing between the cards, currently they are too close to each other so let's increase the space to open up the page. For that we'd had to go to our `GameGrid` component and simply increase its spacing:
+
+```
+const GameGrid = ({ gameQuery }: Props) => {
+  // Same `useState` hook
+
+  return (
+    <>
+      {error && <Text>{error}</Text>}
+      <SimpleGrid
+        columns={{ sm: 1, md: 2, lg: 3, "2xl": 4 }}
+        padding="10px"
+        spacing={6}
+      >
+        // Same content as before
+      </SimpleGrid>
+    </>
+  );
+};
+```
+
+![image](https://gist.github.com/user-attachments/assets/8bebaa18-e25e-484d-b383-ed7749f61189)
